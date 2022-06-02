@@ -11,3 +11,4 @@ class Config:
                               f'{POSTGRES_PASSWORD}@localhost:5432' \
                               f'/{POSTGRES_DB}'
     SQLALCHEMY_TRACK_MODIFICATIONS = True
+    PROPAGATE_EXCEPTIONS = True
