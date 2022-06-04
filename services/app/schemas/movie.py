@@ -9,13 +9,15 @@ from app.schemas.user import UserSchema
 class MovieSchema(ma.SQLAlchemyAutoSchema):
     id = auto_field()
 
-    directors = ma.Nested(DirectorSchema, many=True, nullable=True)
-    posters = ma.Nested(PosterSchema, many=True, nullable=True)
+    director = ma.Nested(DirectorSchema)
+    poster = ma.Nested(PosterSchema)
     user = ma.Nested(UserSchema)
 
     class Meta:
         model = MovieModel
+        exclude = ('id', 'id_director', 'id_poster', 'id_user')
         dateformat = '%Y-%m-%d'
         load_instance = True
         include_fk = True
         include_relationships = True
+        ordered = True

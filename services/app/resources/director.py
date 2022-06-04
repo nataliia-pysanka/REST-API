@@ -4,6 +4,9 @@ from datetime import datetime
 
 from app.models.director import DirectorModel
 from app.schemas.director import DirectorSchema
+from app.CRUD.director import CRUDDirector
+
+from app.db import db
 
 DIRECTOR_NOT_FOUND = "Director not found."
 DIRECTOR_ALREADY_EXISTS = "Director '{}' already exists."
@@ -13,7 +16,7 @@ directors_ns = Namespace('directors', description='Items related operations')
 
 director_schema = DirectorSchema()
 director_list_schema = DirectorSchema(many=True)
-
+crud_director = CRUDDirector(DirectorModel)
 
 director = directors_ns.model('Director', {
     'name': fields.String('Christopher'),
@@ -24,51 +27,39 @@ director = directors_ns.model('Director', {
 
 
 class Director(Resource):
-    def get(self, _id):
-        director_data = DirectorModel.find_by_id(_id)
-        if director_data:
-            return director_schema.dump(director_data)
+    def get(self, id: int):
+        obj = crud_director.read(db.session, id)
+        if obj:
+            return director_schema.dump(obj), 200
         return {'message': DIRECTOR_NOT_FOUND}, 404
 
-    def delete(self, _id):
-        director_data = DirectorModel.find_by_id(_id)
-        if director_data:
-            director_data.delete_from_db()
-            return {'message': "Item deleted successfully"}, 200
+    def delete(self, id: int):
+        obj = crud_director.delete(db.session, id)
+        if obj:
+            return {'message': "Director deleted successfully"}, 200
         return {'message': DIRECTOR_NOT_FOUND}, 404
 
     @director_ns.expect(director)
-    def put(self, _id):
-        director_data = DirectorModel.find_by_id(_id)
-        director_json = request.get_json()
-
-        if director_data:
-            director_data.title = director_json['title']
-            director_data.description = director_json['description']
-            director_data.date_release = director_json['date_release']
-            director_data.rating = director_json['rating']
-            director_data.id_director = director_json['id_director']
-            director_data.id_poster = director_json['id_poster']
-            director_data.id_user = director_json['id_user']
-        else:
-            director_data = director_schema.load(director_json)
-
-        director_data.save_to_db()
-        return director_schema.dump(director_data), 200
+    def put(self, id: int):
+        obj = crud_director.update(db.session, request.get_json(), id)
+        if obj:
+            return {'message': "Director updated successfully"}, 200
+        return {'message': DIRECTOR_NOT_FOUND}, 404
 
 
 class DirectorList(Resource):
     @director_ns.doc('Get all the directors')
     def get(self):
-        return director_list_schema.dump(DirectorModel.find_all()), 200
+        obj = crud_director.read_all(db.session)
+        if obj:
+            return director_list_schema.dump(obj), 200
+        return {'message': DIRECTOR_NOT_FOUND}, 404
 
     @directors_ns.expect(director)
     @directors_ns.doc('Create a director')
     def post(self):
         director_json = request.get_json()
-        print(f'director_json - {director_json}')
         director_data = director_schema.load(director_json)
-        print(f'director_data - {director_data}')
-        director_data.save_to_db()
-
-        return director_schema.dump(director_data), 201
+        obj = crud_director.create(db.session, director_data)
+        if obj:
+            return director_schema.dump(director_data), 200

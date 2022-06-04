@@ -14,7 +14,7 @@ class MovieModel(db.Model):
     title = db.Column(db.VARCHAR, nullable=False)
     description = db.Column(db.TEXT)
     date_release = db.Column(db.DATE)
-    rating = db.Column(db.NUMERIC)
+    rating = db.Column(db.Float(precision=2))
 
     id_director = db.Column(db.INTEGER, db.ForeignKey('director.id'),
                             nullable=True, default=None)
@@ -40,28 +40,3 @@ class MovieModel(db.Model):
     def __repr__(self):
         return "<Movie(title='%s', rating='%s', date_release='%s')>" % (
             self.title, self.rating, self.date_release)
-
-    def json(self):
-        return {'title': self.title,
-                'rating': self.rating,
-                'date_release': self.date_release}
-
-    @classmethod
-    def find_by_title(cls, title) -> "MovieModel":
-        return cls.query.filter_by(title=title).first()
-
-    @classmethod
-    def find_by_id(cls, _id) -> "MovieModel":
-        return cls.query.filter_by(id=_id).first()
-
-    @classmethod
-    def find_all(cls) -> List["MovieModel"]:
-        return cls.query.all()
-
-    def save_to_db(self) -> None:
-        db.session.add(self)
-        db.session.commit()
-
-    def delete_from_db(self) -> None:
-        db.session.delete(self)
-        db.session.commit()
