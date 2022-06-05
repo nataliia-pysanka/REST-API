@@ -1,8 +1,10 @@
 from flask import request
 from flask_restx import Resource, fields, Namespace
+from flask.json import JSONEncoder
 
 from app.models.user import UserModel
 from app.schemas.user import UserSchema
+from app.CRUD.user import CRUDUser
 
 USER_NOT_FOUND = "User not found."
 USER_ALREADY_EXISTS = "User '{}' already exists."
@@ -13,6 +15,10 @@ users_ns = Namespace('users', description='Items related operations')
 user_schema = UserSchema()
 user_list_schema = UserSchema(many=True)
 
+crud_user = CRUDUser(UserModel)
+
+from app.db import db
+
 
 user = users_ns.model('User', {
     'nickname': fields.String('NickName'),
@@ -20,53 +26,49 @@ user = users_ns.model('User', {
     'name': fields.String('Name'),
     'surname': fields.String('Surname'),
     'date_birth': fields.Date,
-    'date_registry': fields.Date
+    'date_registry': fields.Date,
+    'id_role': fields.Integer
 })
 
 
 class User(Resource):
-    def get(self, _id):
-        user_data = UserModel.find_by_id(_id)
-        if user_data:
-            return user_schema.dump(user_data)
+    def get(self, id):
+        obj = crud_user.read(db.session, id)
+        if obj:
+            return user_schema.dump(obj), 200
         return {'message': USER_NOT_FOUND}, 404
 
-    def delete(self, _id):
-        user_data = UserModel.find_by_id(_id)
-        if user_data:
-            user_data.delete_from_db()
+    def delete(self, id):
+        obj = crud_user.delete(db.session, id)
+        if obj:
             return {'message': "User deleted successfully"}, 200
         return {'message': USER_NOT_FOUND}, 404
 
     @user_ns.expect(user)
-    def put(self, _id):
-        user_data = UserModel.find_by_id(_id)
-        user_json = request.get_json()
-
-        if user_data:
-            user_data.nickname = user_json['nickname']
-            user_data.password = user_json['password']
-            user_data.name = user_json['name']
-            user_data.surname = user_json['surname']
-            user_data.date_birth = user_json['date_birth']
-            user_data.date_registry = user_json['date_registry']
-        else:
-            user_data = user_schema.load(user_json)
-
-        user_data.save_to_db()
-        return user_schema.dump(user_data), 200
+    def put(self, id):
+        obj = crud_user.update(db.session, request.get_json(), id)
+        if obj:
+            return {'message': "User updated successfully"}, 200
+        return {'message': USER_NOT_FOUND}, 404
 
 
 class UserList(Resource):
-    @user_ns.doc('Get all users')
+    @user_ns.doc('Get all the users')
     def get(self):
-        return user_list_schema.dump(UserModel.find_all()), 200
+        obj = crud_user.read_all(db.session)
+        print(obj)
+        if obj:
+            return user_list_schema.dump(obj), 200
+        return {'message': USER_NOT_FOUND}, 404
 
     @users_ns.expect(user)
-    @users_ns.doc('Create a movie')
+    @users_ns.doc('Create a user')
     def post(self):
         user_json = request.get_json()
+        print(f'user_json {user_json}')
+        print(type(user_json))
         user_data = user_schema.load(user_json)
-        user_data.save_to_db()
-
-        return user_schema.dump(user_data), 201
+        print(f'user_data {user_data}')
+        obj = crud_user.create(db.session, user_data)
+        if obj:
+            return user_schema.dump(user_data), 200

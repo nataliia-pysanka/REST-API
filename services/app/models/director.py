@@ -20,30 +20,3 @@ class DirectorModel(db.Model):
     def __repr__(self):
         return "<DirectorModel(name='%s', surname='%s')>" % (
             self.name, self.surname)
-
-    def json(self):
-        return {'name': self.name,
-                'surname': self.surname,
-                'date_birth': self.date_birth,
-                'wiki_url': self.wiki_url
-                }
-
-    @classmethod
-    def find_by_name(cls, name, surname):
-        return cls.query.filter_by(name=name, surname=surname).first()
-
-    @classmethod
-    def find_by_id(cls, _id):
-        return cls.query.filter_by(id=_id).first()
-
-    @classmethod
-    def find_all(cls):
-        return cls.query.all()
-
-    def save_to_db(self) -> None:
-        db.session.add(self)
-        db.session.commit()
-
-    def delete_from_db(self) -> None:
-        db.session.delete(self)
-        db.session.commit()

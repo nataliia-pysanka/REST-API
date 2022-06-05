@@ -8,7 +8,9 @@ class PosterSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = PosterModel
+        exclude = ('id',)
         load_instance = True
         load_only = ("movie",)
         include_fk = True
         include_relationships = True
+        ordered = True

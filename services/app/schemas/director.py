@@ -9,8 +9,9 @@ class DirectorSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = DirectorModel
+        exclude = ('id',)
         dateformat = '%Y-%m-%d'
         load_instance = True
-        load_only = ("movie",)
         include_fk = True
         include_relationships = True
+        ordered = True

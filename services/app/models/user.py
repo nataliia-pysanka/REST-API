@@ -30,26 +30,3 @@ class UserModel(db.Model):
     def __repr__(self):
         return 'UserModel(nickname=%s, date_registry=%s)' % (
             self.nickname, self.date_registry)
-
-    def json(self):
-        return {'nickname': self.nickname, 'date_registry': self.date_registry}
-
-    @classmethod
-    def find_by_nickname(cls, nickname) -> "UserModel":
-        return cls.query.filter_by(nickname=nickname).first()
-
-    @classmethod
-    def find_by_id(cls, _id) -> "UserModel":
-        return cls.query.filter_by(id=_id).first()
-
-    @classmethod
-    def find_all(cls) -> List["UserModel"]:
-        return cls.query.all()
-
-    def save_to_db(self) -> None:
-        db.session.add(self)
-        db.session.commit()
-
-    def delete_from_db(self) -> None:
-        db.session.delete(self)
-        db.session.commit()

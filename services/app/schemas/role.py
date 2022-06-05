@@ -8,7 +8,8 @@ class RoleSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = RoleModel
+        exclude = ('id',)
         load_instance = True
-        load_only = ("user",)
+        # load_only = ("user",)
         include_fk = True
         include_relationships = True
