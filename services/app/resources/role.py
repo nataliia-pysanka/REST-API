@@ -60,4 +60,4 @@ class RoleList(Resource):
         role_data = role_schema.load(role_json)
         obj = crud_role.create(db.session, role_data)
         if obj:
-            return role_schema.dump(role_data), 200
+            return role_schema.dump(role_data), 201

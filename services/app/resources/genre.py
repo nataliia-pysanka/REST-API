@@ -59,4 +59,5 @@ class GenreList(Resource):
         genre_data = genre_schema.load(genre_json)
         obj = crud_genre.create(db.session, genre_data)
         if obj:
-            return genre_schema.dump(genre_data), 200
+
+            return genre_schema.dump(genre_data), 201

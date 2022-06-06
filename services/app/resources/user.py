@@ -68,7 +68,7 @@ class UserList(Resource):
         print(f'user_json {user_json}')
         print(type(user_json))
         user_data = user_schema.load(user_json)
-        print(f'user_data {user_data}')
         obj = crud_user.create(db.session, user_data)
         if obj:
-            return user_schema.dump(user_data), 200
+            return user_schema.dump(user_data), 201
+

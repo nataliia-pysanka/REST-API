@@ -59,4 +59,5 @@ class PosterList(Resource):
         poster_data = poster_schema.load(poster_json)
         obj = crud_poster.create(db.session, poster_data)
         if obj:
-            return poster_schema.dump(poster_data), 200
+
+            return poster_schema.dump(poster_data), 201

@@ -62,4 +62,5 @@ class DirectorList(Resource):
         director_data = director_schema.load(director_json)
         obj = crud_director.create(db.session, director_data)
         if obj:
-            return director_schema.dump(director_data), 200
+            return director_schema.dump(director_data), 201
+
