@@ -5,10 +5,9 @@ from marshmallow import ValidationError
 
 import click
 
-
 from .config import Config
-from app.ma import ma
-from app.db import db
+from .ma import ma
+from .db import db
 
 from .resources.movie import Movie, MovieList, movie_ns, movies_ns
 from .resources.user import User, UserList, user_ns, users_ns
@@ -19,6 +18,9 @@ from .resources.genre import Genre, GenreList, genre_ns, genres_ns
 from .resources.poster import Poster, PosterList, poster_ns, posters_ns
 
 from .routes.movie import movie_routes
+
+from .seed.seed import seed_roles, seed_genres, seed_directors, \
+                       seed_posters, seed_movies, seed_users_by_roles
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -82,4 +84,23 @@ genres_ns.add_resource(GenreList, "")
 
 @app.cli.command("seed")
 def seed():
-    click.echo('Seed the database')
+    click.echo('Seed roles')
+    seed_roles(db.session)
+    click.echo('Seed genres')
+    seed_genres(db.session)
+    click.echo('Seed admins')
+    seed_users_by_roles(db.session, 10, 1)
+    click.echo('Seed users')
+    seed_users_by_roles(db.session, 3000, 2)
+    click.echo('Seed directors')
+    seed_directors(db.session, 2000)
+    click.echo('Seed posters')
+    seed_posters(db.session, 20000)
+    click.echo('Seed movies')
+    seed_movies(db.session, 20000)
+
+
+@app.cli.command('drop')
+def drop():
+    click.echo('Drop the database')
+    db.drop_all()

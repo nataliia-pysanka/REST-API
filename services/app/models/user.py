@@ -13,18 +13,19 @@ class UserModel(db.Model):
     surname = db.Column(db.VARCHAR)
     date_birth = db.Column(db.DATE)
     date_registry = db.Column(db.DATE, default=datetime)
-
+    is_verified = db.Column(db.Boolean)
     id_role = db.Column(db.INTEGER, db.ForeignKey('role.id'))
     role = db.relationship("RoleModel", )
 
     def __init__(self, nickname, password, name, surname, date_birth,
-                 date_registry, id_role):
+                 date_registry, id_role, is_verified):
         self.nickname = nickname
         self.password = password
         self.name = name
         self.surname = surname
         self.date_birth = date_birth
         self.date_registry = date_registry
+        self.is_verified = is_verified
         self.id_role = id_role
 
     def __repr__(self):
