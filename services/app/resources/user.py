@@ -1,6 +1,6 @@
 from flask import request
 from flask_restx import Resource, fields, Namespace
-from flask.json import JSONEncoder
+from flask_login import login_required
 
 from app.models.user import UserModel
 from app.schemas.user import UserSchema
@@ -38,6 +38,7 @@ class User(Resource):
             return user_schema.dump(obj), 200
         return {'message': USER_NOT_FOUND}, 404
 
+    @login_required
     def delete(self, id):
         obj = crud_user.delete(db.session, id)
         if obj:
@@ -45,6 +46,7 @@ class User(Resource):
         return {'message': USER_NOT_FOUND}, 404
 
     @user_ns.expect(user)
+    @login_required
     def put(self, id):
         obj = crud_user.update(db.session, request.get_json(), id)
         if obj:
@@ -63,12 +65,11 @@ class UserList(Resource):
 
     @users_ns.expect(user)
     @users_ns.doc('Create a user')
+    @login_required
     def post(self):
         user_json = request.get_json()
-        print(f'user_json {user_json}')
-        print(type(user_json))
-        user_data = user_schema.load(user_json)
+        obj = user_schema.load(user_json)
+        user_data = user_schema.dump(obj)
         obj = crud_user.create(db.session, user_data)
         if obj:
-            return user_schema.dump(user_data), 201
-
+            return user_data, 201

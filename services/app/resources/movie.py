@@ -1,6 +1,6 @@
 from flask import request
 from flask_restx import Resource, fields, Namespace
-from flask_filter.query_filter import query_with_filters
+from flask_login import login_required
 
 from app.models.movie import MovieModel
 from app.schemas.movie import MovieSchema
@@ -39,13 +39,16 @@ class Movie(Resource):
             return movie_schema.dump(obj), 200
         return {'message': MOVIE_NOT_FOUND}, 404
 
+    @login_required
     def delete(self, id):
+
         obj = crud_movie.delete(db.session, id)
         if obj:
             return {'message': "Movie deleted successfully"}, 200
         return {'message': MOVIE_NOT_FOUND}, 404
 
     @movie_ns.expect(movie)
+    @login_required
     def put(self, id):
         obj = crud_movie.update(db.session, request.get_json(), id)
         if obj:
@@ -63,6 +66,7 @@ class MovieList(Resource):
 
     @movies_ns.expect(movie)
     @movies_ns.doc('Create a movie')
+    @login_required
     def post(self):
         movie_json = request.get_json()
         movie_data = movie_schema.load(movie_json)

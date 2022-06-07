@@ -38,7 +38,6 @@ def seed_users_by_roles(session: Session, num: int, role: int):
                      'date_birth': (fake.date_between(start_date='-70y',
                                                       end_date='-15y')),
                      'date_registry': (fake.date_between(start_date='-2y')),
-                     'is_verified': False,
                      'id_role': str(role)
                      }
         CRUDBase(UserModel).create(session, user_json)
