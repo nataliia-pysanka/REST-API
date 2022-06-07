@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from app.schemas.director import DirectorSchema
 from app.CRUD.base import CRUDBase
 from app.models.director import DirectorModel
@@ -17,3 +18,9 @@ class CRUDDirector(CRUDBase[DirectorModel, DirectorSchema]):
         session.refresh(db_obj)
         return db_obj
 
+    def get_id_by_name(self, session: Session, name: str) -> Any:
+        obj = session.query(self.model).filter(or_(self.model.name.ilike(
+            f'%{name}%'), self.model.surname.ilike(f'%{name}%'))).first()
+        if obj:
+            return obj.id
+        return None

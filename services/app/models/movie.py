@@ -16,6 +16,10 @@ class MovieModel(db.Model):
     date_release = db.Column(db.DATE)
     rating = db.Column(db.Float(precision=2))
 
+    id_genre = db.Column(db.INTEGER, db.ForeignKey('genre.id'), nullable=True,
+                         default=None)
+    genre = db.relationship("GenreModel", )
+
     id_director = db.Column(db.INTEGER, db.ForeignKey('director.id'),
                             nullable=True, default=None)
     director = db.relationship("DirectorModel", )
@@ -28,11 +32,12 @@ class MovieModel(db.Model):
     user = db.relationship("UserModel", )
 
     def __init__(self, title, description, date_release, rating,
-                 id_director=None, id_poster=None, id_user=None):
+                id_genre=None, id_director=None, id_poster=None, id_user=None):
         self.title = title
         self.description = description
         self.date_release = date_release
         self.rating = rating
+        self.id_genre = id_genre
         self.id_director = id_director
         self.id_poster = id_poster
         self.id_user = id_user

@@ -25,6 +25,7 @@ movie = movies_ns.model('Movie', {
     'description': fields.String('Description of the Movie'),
     'date_release': fields.Date(),
     'rating': fields.Float(0.00),
+    'id_genre': fields.Integer,
     'id_director': fields.Integer,
     'id_poster': fields.Integer,
     'id_user': fields.Integer
@@ -64,11 +65,7 @@ class MovieList(Resource):
     @movies_ns.doc('Create a movie')
     def post(self):
         movie_json = request.get_json()
-        print(f'user_json {movie_json}')
-        print(type(movie_json))
-
         movie_data = movie_schema.load(movie_json)
-        print(f'user_data {movie_data}')
         obj = crud_movie.create(db.session, movie_data)
         if obj:
             return movie_schema.dump(movie_data), 201
