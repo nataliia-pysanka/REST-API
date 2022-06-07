@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from typing import List, Generic, TypeVar, Type, Any
-
+from typing import List, Generic, TypeVar, Type, Any, Dict
+from flask.json import JSONEncoder
 BaseModel = TypeVar("BaseModel")
 BaseSchema = TypeVar("BaseSchema")
 
@@ -9,8 +9,8 @@ class CRUDBase(Generic[BaseModel, BaseSchema]):
     def __init__(self, model: Type[BaseModel]):
         self.model = model
 
-    def create(self, session: Session, obj_data: Any) -> BaseModel:
-        db_obj = self.model(obj_data)
+    def create(self, session: Session, obj_data: Dict) -> BaseModel:
+        db_obj = self.model(**obj_data)
         session.add(db_obj)
         session.commit()
         session.refresh(db_obj)
@@ -41,5 +41,10 @@ class CRUDBase(Generic[BaseModel, BaseSchema]):
             session.commit()
             return db_obj
 
-
+    def get_id_by_name(self, session: Session, name: str) -> Any:
+        obj = session.query(self.model).filter(self.model.name.ilike(
+            f'%{name}%')).first()
+        if obj:
+            return obj.id
+        return None
 

@@ -23,4 +23,9 @@ class CRUDDirector(CRUDBase[DirectorModel, DirectorSchema]):
             f'%{name}%'), self.model.surname.ilike(f'%{name}%'))).first()
         if obj:
             return obj.id
+
+    def get_birth_by_id(self, session: Session, id: Any) -> Any:
+        obj = session.query(self.model).filter(self.model.id == id).first()
+        if obj:
+            return obj.date_birth
         return None
