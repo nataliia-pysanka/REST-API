@@ -58,7 +58,6 @@ class UserList(Resource):
     @user_ns.doc('Get all the users')
     def get(self):
         obj = crud_user.read_all(db.session)
-        print(obj)
         if obj:
             return user_list_schema.dump(obj), 200
         return {'message': USER_NOT_FOUND}, 404

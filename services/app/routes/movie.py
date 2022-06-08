@@ -1,5 +1,7 @@
-from flask import Blueprint
+from flask import Blueprint, jsonify, redirect, url_for
 from flask import request
+
+from datetime import datetime
 
 
 from app.models.movie import MovieModel
@@ -23,16 +25,42 @@ crud_director = CRUDDirector(DirectorModel)
 @movie_routes.route('/search', methods=['GET'])
 def search():
     args = request.args
-    genre = args.get('genre')
-    release = args.get('release')
-    director = args.get('director')
+    genre = args.get('genre', '').split(' ')
+    release_date = [datetime.strptime(item, '%Y-%m-%d')
+               for item in args.get('release_date', '').split(',') if item]
+
+    director = args.get('director', '').split(' ')
+
+    offset = int(args.get('offset'), 0)
+    limit = int(args.get('limit'), 10)
 
     id_genre = crud_genre.get_id_by_name(db.session, genre)
     id_director = crud_director.get_id_by_name(db.session, director)
-    print(id_genre, id_director)
-    obj = crud_movie.get_by_filter(db.session,
-                                   id_genre=id_genre,
-                                   release=release,
-                                   id_director=id_director)
 
-    return movie_schema.dump(obj), 200
+    obj_all = crud_movie.get_by_filter(db.session,
+                                   id_genre=id_genre,
+                                   release_date=release_date,
+                                   id_director=id_director,
+                                   offset=offset,
+                                   limit=limit)
+    json = []
+    for obj in obj_all:
+        json.append(movie_schema.dump(obj))
+
+    change_query = f'offset={offset}'
+    query = request.full_path
+
+    if json:
+        next_url = query.replace(change_query, f'offset={offset + limit}')
+    else:
+        next_url = ''
+
+    if offset >= limit:
+        prev_url = query.replace(change_query, f'offset={offset - limit}')
+    else:
+        prev_url = ''
+
+    return jsonify({'prev_url': prev_url, 'next_url': next_url,
+                    'result': json})
+
+

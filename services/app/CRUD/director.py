@@ -18,11 +18,15 @@ class CRUDDirector(CRUDBase[DirectorModel, DirectorSchema]):
         session.refresh(db_obj)
         return db_obj
 
-    def get_id_by_name(self, session: Session, name: str) -> Any:
-        obj = session.query(self.model).filter(or_(self.model.name.ilike(
-            f'%{name}%'), self.model.surname.ilike(f'%{name}%'))).first()
-        if obj:
-            return obj.id
+    def get_id_by_name(self, session: Session, name_list: List[str]) -> Any:
+        obj_id = []
+        for name in name_list:
+            obj_all = session.query(self.model).filter(or_(
+                self.model.name.ilike(f'%{name}%'),
+                self.model.surname.ilike(f'%{name}%'))).all()
+            for obj in obj_all:
+                obj_id.append(obj.id)
+            return obj_id
 
     def get_birth_by_id(self, session: Session, id: Any) -> Any:
         obj = session.query(self.model).filter(self.model.id == id).first()
