@@ -20,3 +20,4 @@ class DirectorModel(db.Model):
     def __repr__(self):
         return "<DirectorModel(name='%s', surname='%s')>" % (
             self.name, self.surname)
+

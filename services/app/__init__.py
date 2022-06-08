@@ -18,6 +18,7 @@ from .resources.genre import Genre, GenreList, genre_ns, genres_ns
 from .resources.poster import Poster, PosterList, poster_ns, posters_ns
 
 from .routes.movie import movie_routes
+from .auth import auth_routes, login_manager
 
 from .seed.seed import seed_roles, seed_genres, seed_directors, \
                        seed_posters, seed_movies, seed_users_by_roles
@@ -25,14 +26,20 @@ from .seed.seed import seed_roles, seed_genres, seed_directors, \
 app = Flask(__name__)
 app.config.from_object(Config)
 
+login_manager.init_app(app)
+login_manager.blueprint_login_views = {'auth': '/auth/login'}
+
+
 db.init_app(app)
 ma.init_app(app)
 migrate = Migrate(app, db)
 
+app.register_blueprint(movie_routes)
+app.register_blueprint(auth_routes)
+
 api_resources = Blueprint('api', __name__, url_prefix='/api')
 api = Api(api_resources, doc='/doc', title='Sample Flask-RestPlus Application')
 app.register_blueprint(api_resources)
-app.register_blueprint(movie_routes)
 
 api.add_namespace(movie_ns)
 api.add_namespace(movies_ns)
