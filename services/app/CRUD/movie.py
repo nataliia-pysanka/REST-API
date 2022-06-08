@@ -22,13 +22,13 @@ class CRUDMovie(CRUDBase[MovieModel, MovieSchema]):
         session.refresh(db_obj)
         return db_obj
 
-    def get_by_filter(self, session: Session, id_genre: Any = None,
-                      release: List[str] = [], id_director: Any = None,
-                      skip: int = 0, limit: int = 100) -> List[MovieModel]:
+    def get_by_filter(self, session: Session, id_genre: List[Any] = [],
+                      release_date: List[str] = [], id_director: List[Any] = [],
+                      offset: int = 0, limit: int = 100) -> List[MovieModel]:
         return session.query(self.model).filter(or_(
-                    self.model.id_genre == id_genre,
-                    # self.model.date_release > release[0],
-                    # self.model.date_release < release[1],
-                    self.model.id_director == id_director
-                                      )).offset(skip).limit(limit).all()
+                    self.model.id_genre.in_(id_genre),
+                    self.model.date_release > release_date[0],
+                    self.model.date_release < release_date[1],
+                    self.model.id_director.in_(id_director)
+                                      )).offset(offset).limit(limit).all()
 

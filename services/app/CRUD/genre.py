@@ -13,9 +13,11 @@ class CRUDGenre(CRUDBase[GenreModel, GenreSchema]):
         session.refresh(db_obj)
         return db_obj
 
-    def get_id_by_name(self, session: Session, name: str) -> Any:
-        obj = session.query(self.model).filter(self.model.name.ilike(
-            f'%{name}%')).first()
-        if obj:
-            return obj.id
-        return None
+    def get_id_by_name(self, session: Session, name_list: List[str]) -> Any:
+        obj_id = []
+        for name in name_list:
+            obj_all = session.query(self.model).filter(self.model.name.ilike(
+                f'%{name}%')).all()
+            for obj in obj_all:
+                obj_id.append(obj.id)
+        return obj_id

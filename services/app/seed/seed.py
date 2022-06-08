@@ -118,7 +118,8 @@ def seed_movies(session: Session, num: int):
             'id_director': id_director,
             'id_poster': random.choice([None, fake.random_int(min=1,
                                                               max=20000)]),
-            'id_user': fake.random_int(min=1, max=2000)
+            'id_user': fake.random_int(min=1, max=2000),
+            'id_genre': fake.random_int(min=1, max=len(GENRES))
         }
 
         CRUDBase(MovieModel).create(session, movie_json)
