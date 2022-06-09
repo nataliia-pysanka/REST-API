@@ -5,7 +5,7 @@ from flask import jsonify
 from app.db import db
 from app.models.user import UserModel
 from app.schemas.user import UserSchema
-from app.CRUD.user import CRUDUser
+from app.crud.user import CRUDUser
 
 login_manager = LoginManager()
 
@@ -14,7 +14,7 @@ auth_routes = Blueprint('auth', __name__, url_prefix='/auth')
 
 @login_manager.user_loader
 def load_user(user_id):
-    return CRUDUser(UserModel).read(db.session, id=user_id)
+    return CRUDUser().read(db.session, id=user_id)
 
 
 @auth_routes.route('/login', methods=['POST'])
@@ -23,7 +23,7 @@ def login():
     nickname = data.get('nickname', 'guest')
     password = data.get('password', '')
 
-    user = CRUDUser(UserModel).get_user_by_nickname(db.session, nickname)
+    user = CRUDUser().get_user_by_nickname(db.session, nickname)
     if user.verify_password(password):
         login_user(user)
         return UserSchema().dump(user)
@@ -37,7 +37,7 @@ def signup():
     try:
         user = UserSchema().load(request.get_json())
         user_data = UserSchema().dump(user)
-        CRUDUser(UserModel).create(db.session, user_data)
+        CRUDUser().create(db.session, user_data)
         return jsonify({"status": 201,
                         "reason": "User was created"})
     except Exception as err:

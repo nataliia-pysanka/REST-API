@@ -3,7 +3,7 @@ from flask_restx import Resource, fields, Namespace
 
 from app.models.poster import PosterModel
 from app.schemas.poster import PosterSchema
-from app.CRUD.poster import CRUDPoster
+from app.crud.poster import CRUDPoster
 
 from app.db import db
 
@@ -16,7 +16,7 @@ posters_ns = Namespace('posters', description='Items related operations')
 poster_schema = PosterSchema()
 poster_list_schema = PosterSchema(many=True)
 
-crud_poster = CRUDPoster(PosterModel)
+crud_poster = CRUDPoster()
 
 poster = posters_ns.model('Poster', {
     'url': fields.String('Path to the Poster')
@@ -45,7 +45,7 @@ class Poster(Resource):
 
 
 class PosterList(Resource):
-    @poster_ns.doc('Get all the posters')
+    @posters_ns.doc('Get all the posters')
     def get(self):
         obj = crud_poster.read_all(db.session)
         if obj:

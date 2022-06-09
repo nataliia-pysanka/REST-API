@@ -2,12 +2,15 @@ from sqlalchemy.orm import Session
 
 from sqlalchemy import or_
 from app.schemas.movie import MovieSchema
-from app.CRUD.base import CRUDBase
+from app.crud.base import CRUDBase
 from app.models.movie import MovieModel
 from typing import Any, List, Dict
 
 
 class CRUDMovie(CRUDBase[MovieModel, MovieSchema]):
+    def __init__(self):
+        self.model = MovieModel
+
     def create(self, session: Session, obj_data: Any) -> MovieModel:
         db_obj = self.model(title=obj_data.title,
                             description=obj_data.description,
@@ -23,12 +26,12 @@ class CRUDMovie(CRUDBase[MovieModel, MovieSchema]):
         return db_obj
 
     def get_by_filter(self, session: Session, id_genre: List[Any] = [],
-                      release_date: List[str] = [], id_director: List[Any] = [],
+                      release_date: List[str] = [],
+                      id_director: List[Any] = [],
                       offset: int = 0, limit: int = 100) -> List[MovieModel]:
-        return session.query(self.model).filter(or_(
+        return session.query(self.model).filter(
                     self.model.id_genre.in_(id_genre),
                     self.model.date_release > release_date[0],
                     self.model.date_release < release_date[1],
                     self.model.id_director.in_(id_director)
-                                      )).offset(offset).limit(limit).all()
-
+                                      ).offset(offset).limit(limit).all()

@@ -3,6 +3,8 @@ from typing import List
 from datetime import datetime
 from app.models.role import RoleModel
 
+from app.config import ADMIN_ID
+
 
 class UserModel(db.Model):
     __tablename__: str = 'user'
@@ -53,3 +55,8 @@ class UserModel(db.Model):
 
     def get_id(self):
         return str(self.id)
+
+    def is_admin(self):
+        if self.id_role == ADMIN_ID:
+            return True
+        return False

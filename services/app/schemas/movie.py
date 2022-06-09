@@ -18,7 +18,7 @@ class MovieSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = MovieModel
 
-        # exclude = ('id', 'id_genre', 'id_director', 'id_poster', 'id_user')
+        exclude = ('id', 'id_genre', 'id_director', 'id_poster', 'id_user')
         dateformat = '%Y-%m-%d'
         load_instance = True
         include_fk = True

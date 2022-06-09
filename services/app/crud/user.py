@@ -1,11 +1,14 @@
 from sqlalchemy.orm import Session
 from app.schemas.user import UserSchema
-from app.CRUD.base import CRUDBase
+from app.crud.base import CRUDBase
 from app.models.user import UserModel
 from typing import Any, List
 
 
 class CRUDUser(CRUDBase[UserModel, UserSchema]):
+    def __init__(self):
+        self.model = UserModel
+
     def create(self, session: Session, obj_data: Any) -> UserModel:
         db_obj = self.model(nickname=obj_data['nickname'],
                             password=obj_data['password'],
@@ -27,6 +30,10 @@ class CRUDUser(CRUDBase[UserModel, UserSchema]):
 
     def read(self, session: Session, id: Any) -> UserModel:
         return session.query(self.model).get(id)
+
+    def read_all(self, session: Session, skip: int = 0, limit: int = 10) \
+            -> List[UserModel]:
+        return session.query(self.model).offset(skip).limit(limit).all()
 
     def get_user_by_nickname(self, session: Session, nickname: str) \
             -> UserModel:

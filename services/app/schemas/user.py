@@ -11,7 +11,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = UserModel
 
-        exclude = ('id', 'password')
+        # exclude = ('id', 'password')
         dateformat = '%Y-%m-%d'
         load_instance = True
         include_fk = True
