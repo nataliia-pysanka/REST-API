@@ -14,18 +14,25 @@ director_domain = DomainDirector(CRUDDirector())
 
 class DomainMovie(DomainBase):
     def get_movie_by_filter(self, args):
-        genres = args.get('genre', '').split(' ')
-        release_dates = [datetime.strptime(item, '%Y-%m-%d')
-                         for item in args.get('release_date', '').split(',')
-                         if item]
+        offset = int(args.get('offset', '0'))
+        limit = int(args.get('limit', '10'))
 
-        directors = args.get('director', '').split(' ')
+        if args.get('genre') is None and \
+                args.get('release_date') is None and \
+                args.get('director') is None:
+            return self.crud.read_all(db.session, offset=offset, limit=limit)
+
+        genres = args.get('genre', '')
+        release_dates = args.get('release_date', '')
+        directors = args.get('director', '')
+        genres = genres.split(' ')
+        release_dates = [datetime.strptime(item, '%Y-%m-%d')
+                         for item in release_dates.split(',') if item]
+
+        directors = directors.split(' ')
 
         id_genre = genre_domain.get_id_by_name(genres)
         id_director = director_domain.get_id_by_name(directors)
-
-        offset = int(args.get('offset'), 0)
-        limit = int(args.get('limit'), 10)
 
         return self.crud.get_by_filter(db.session,
                                        id_genre=id_genre,

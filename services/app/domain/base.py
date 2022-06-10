@@ -9,6 +9,7 @@ class DomainBase:
         self.crud = crud
 
     def create(self, obj_data: Dict):
+        print(type(obj_data))
         return self.crud.create(db.session, obj_data)
 
     def read(self, id: Any):
@@ -21,4 +22,4 @@ class DomainBase:
         return self.crud.update(db.session, obj_data, id)
 
     def delete(self, id: Any):
-        return self.crud.update(db.session, id)
+        return self.crud.delete(db.session, id)
