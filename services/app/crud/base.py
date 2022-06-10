@@ -56,9 +56,9 @@ class CRUDBase(Generic[ModelType, BaseSchema], CRUDAbstract):
     def read(self, session: Session, id: Any) -> ModelType:
         return session.query(self.model).get(id)
 
-    def read_all(self, session: Session, skip: int = 0, limit: int = 10) \
+    def read_all(self, session: Session, offset: int = 0, limit: int = 10) \
             -> List[ModelType]:
-        return session.query(self.model).offset(skip).limit(limit).all()
+        return session.query(self.model).offset(offset).limit(limit).all()
 
     def update(self, session: Session, obj_data: Any, id: Any) -> ModelType:
         db_obj = session.query(self.model).get(id)

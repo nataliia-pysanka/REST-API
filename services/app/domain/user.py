@@ -7,4 +7,5 @@ from app.db import db
 
 
 class DomainUser(DomainBase):
-    pass
+    def get_user_by_nickname(self, nickname: str):
+        return self.crud.get_user_by_nickname(db.session, nickname)

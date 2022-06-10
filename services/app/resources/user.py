@@ -7,6 +7,9 @@ from app.schemas.user import UserSchema
 from app.crud.user import CRUDUser
 from app.domain.user import DomainUser
 
+from app.util.responses import response_with
+import app.util.responses as resp
+
 USER_NOT_FOUND = "User not found."
 USER_ALREADY_EXISTS = "User '{}' already exists."
 
@@ -33,15 +36,21 @@ class User(Resource):
     def get(self, id):
         obj = user_domain.read(id)
         if obj:
-            return user_schema.dump(obj), 200
-        return {'message': USER_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_200,
+                                 value={"user": user_schema.dump(obj)})
+        return response_with(resp.NOT_FOUND_404,
+                             message="User not Found")
 
     @login_required
     def delete(self, id):
         obj = user_domain.delete(id)
         if obj:
-            return {'message': "User deleted successfully"}, 200
-        return {'message': USER_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_200,
+                      value={"user": user_schema.dump(obj)},
+                      message="User was deleted successfully")
+
+        return response_with(resp.NOT_FOUND_404,
+                             message="User not Found")
 
     @user_ns.expect(user)
     @login_required
@@ -57,16 +66,27 @@ class UserList(Resource):
     def get(self):
         obj = user_domain.read_all()
         if obj:
-            return user_list_schema.dump(obj), 200
-        return {'message': USER_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_200,
+                          value={"user": user_list_schema.dump(obj)})
+        return response_with(resp.NOT_FOUND_404,
+                          message="User not Found")
 
     @users_ns.expect(user)
     @users_ns.doc('Create a user')
     @login_required
     def post(self):
-        user_json = request.get_json()
-        obj = user_schema.load(user_json)
+        try:
+            user_json = request.get_json()
+            obj = user_schema.load(user_json)
+        except ValidationError:
+            return response_with(resp.INVALID_INPUT_422)
+
+        if user_domain.get_user_by_nickname(obj.nickname):
+            return response_with(resp.ALREADY_EXIST_400)
+
         user_data = user_schema.dump(obj)
         obj = user_domain.create(user_data)
         if obj:
-            return user_data, 201
+            return response_with(resp.SUCCESS_201,
+                                 value={"user": user_schema.dump(obj)})
+        return response_with(resp.INVALID_INPUT_422)

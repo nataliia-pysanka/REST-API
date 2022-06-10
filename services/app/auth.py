@@ -1,20 +1,27 @@
 from flask import Blueprint, request
 from flask_login import LoginManager, login_user, current_user, logout_user
 from flask import jsonify
+from marshmallow.exceptions import ValidationError
+
+from .util.responses import response_with
+import app.util.responses as resp
+
 
 from app.db import db
-from app.models.user import UserModel
+from app.domain.user import DomainUser
 from app.schemas.user import UserSchema
 from app.crud.user import CRUDUser
 
 login_manager = LoginManager()
-
 auth_routes = Blueprint('auth', __name__, url_prefix='/auth')
+
+user_schema = UserSchema()
+user_domain = DomainUser(CRUDUser())
 
 
 @login_manager.user_loader
 def load_user(user_id):
-    return CRUDUser().read(db.session, id=user_id)
+    return user_domain.read(id=user_id)
 
 
 @auth_routes.route('/login', methods=['POST'])
@@ -23,42 +30,44 @@ def login():
     nickname = data.get('nickname', 'guest')
     password = data.get('password', '')
 
-    user = CRUDUser().get_user_by_nickname(db.session, nickname)
+    user = user_domain.get_user_by_nickname(nickname)
+
     if user.verify_password(password):
         login_user(user)
-        return UserSchema().dump(user)
+        user_data = user_schema.dump(user)
+        return response_with(resp.SUCCESS_200, value={'user': user_data})
     else:
-        return jsonify({"status": 401,
-                        "reason": "Username or Password Error"})
+        return response_with(resp.UNAUTHORIZED_401)
 
 
 @auth_routes.route('/signup', methods=['POST'])
 def signup():
     try:
-        user = UserSchema().load(request.get_json())
-        user_data = UserSchema().dump(user)
-        CRUDUser().create(db.session, user_data)
-        return jsonify({"status": 201,
-                        "reason": "User was created"})
-    except Exception as err:
-        print(err)
-        return jsonify({"status": 422,
-                        "reason": "Can't create user"})
+        user = user_schema.load(request.get_json())
+    except ValidationError:
+        return response_with(resp.INVALID_INPUT_422)
+
+    if user_domain.get_user_by_nickname(user.nickname):
+        return response_with(resp.ALREADY_EXIST_400)
+
+    user_data = user_schema.dump(user)
+    result = user_domain.create(user_data)
+    if result:
+        return response_with(resp.SUCCESS_201,
+                             value={"user": user_schema.dump(result)})
+    return response_with(resp.INVALID_INPUT_422)
 
 
 @auth_routes.route('/logout', methods=['POST'])
 def logout():
     logout_user()
-    return jsonify(**{'result': 200,
-                      'data': {'message': 'logout success'}})
+    return response_with(resp.SUCCESS_200, message='Logout success')
 
 
 @auth_routes.route('/user_info', methods=['POST'])
 def user_info():
     if current_user.is_authenticated:
-        resp = {"result": 200,
-                "data": current_user.json()}
+        user_data = user_schema.dump(current_user)
+        return response_with(resp.SUCCESS_200, value={'user': user_data})
     else:
-        resp = {"result": 401,
-                "data": {"message": "user no login"}}
-    return jsonify(**resp)
+        return response_with(resp.UNAUTHORIZED_401)
