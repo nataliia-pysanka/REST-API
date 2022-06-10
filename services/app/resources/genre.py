@@ -3,7 +3,7 @@ from flask_restx import Resource, fields, Namespace
 
 from app.models.genre import GenreModel
 from app.schemas.genre import GenreSchema
-from app.CRUD.genre import CRUDGenre
+from app.crud.genre import CRUDGenre
 
 from app.db import db
 
@@ -16,7 +16,7 @@ genres_ns = Namespace('genres', description='Items related operations')
 genre_schema = GenreSchema()
 genre_list_schema = GenreSchema(many=True)
 
-crud_genre = CRUDGenre(GenreModel)
+crud_genre = CRUDGenre()
 
 genre = genres_ns.model('Genre', {
     'name': fields.String('Horror')
@@ -45,7 +45,7 @@ class Genre(Resource):
 
 
 class GenreList(Resource):
-    @genre_ns.doc('Get all the genres')
+    @genres_ns.doc('Get all the genres')
     def get(self):
         obj = crud_genre.read_all(db.session)
         if obj:

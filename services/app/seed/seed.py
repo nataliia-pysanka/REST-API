@@ -10,8 +10,8 @@ from app.models.poster import PosterModel
 from app.models.user import UserModel
 from app.models.movie import MovieModel
 
-from app.CRUD.base import CRUDBase
-from app.CRUD.director import CRUDDirector
+from app.crud.base import CRUDBase
+from app.crud.director import CRUDDirector
 
 from typing import TypeVar, Any
 

@@ -4,7 +4,8 @@ from flask_login import login_required
 
 from app.models.user import UserModel
 from app.schemas.user import UserSchema
-from app.CRUD.user import CRUDUser
+from app.crud.user import CRUDUser
+from app.domain.user import DomainUser
 
 USER_NOT_FOUND = "User not found."
 USER_ALREADY_EXISTS = "User '{}' already exists."
@@ -15,10 +16,7 @@ users_ns = Namespace('users', description='Items related operations')
 user_schema = UserSchema()
 user_list_schema = UserSchema(many=True)
 
-crud_user = CRUDUser(UserModel)
-
-from app.db import db
-
+user_domain = DomainUser(CRUDUser())
 
 user = users_ns.model('User', {
     'nickname': fields.String('NickName'),
@@ -33,14 +31,14 @@ user = users_ns.model('User', {
 
 class User(Resource):
     def get(self, id):
-        obj = crud_user.read(db.session, id)
+        obj = user_domain.read(id)
         if obj:
             return user_schema.dump(obj), 200
         return {'message': USER_NOT_FOUND}, 404
 
     @login_required
     def delete(self, id):
-        obj = crud_user.delete(db.session, id)
+        obj = user_domain.delete(id)
         if obj:
             return {'message': "User deleted successfully"}, 200
         return {'message': USER_NOT_FOUND}, 404
@@ -48,16 +46,16 @@ class User(Resource):
     @user_ns.expect(user)
     @login_required
     def put(self, id):
-        obj = crud_user.update(db.session, request.get_json(), id)
+        obj = user_domain.update(request.get_json(), id)
         if obj:
             return {'message': "User updated successfully"}, 200
         return {'message': USER_NOT_FOUND}, 404
 
 
 class UserList(Resource):
-    @user_ns.doc('Get all the users')
+    @users_ns.doc('Get all the users')
     def get(self):
-        obj = crud_user.read_all(db.session)
+        obj = user_domain.read_all()
         if obj:
             return user_list_schema.dump(obj), 200
         return {'message': USER_NOT_FOUND}, 404
@@ -69,6 +67,6 @@ class UserList(Resource):
         user_json = request.get_json()
         obj = user_schema.load(user_json)
         user_data = user_schema.dump(obj)
-        obj = crud_user.create(db.session, user_data)
+        obj = user_domain.create(user_data)
         if obj:
             return user_data, 201

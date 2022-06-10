@@ -3,7 +3,7 @@ from flask_restx import Resource, fields, Namespace
 
 from app.models.role import RoleModel
 from app.schemas.role import RoleSchema
-from app.CRUD.role import CRUDRole
+from app.crud.role import CRUDRole
 
 from app.db import db
 
@@ -15,7 +15,7 @@ roles_ns = Namespace('roles', description='Items related operations')
 
 role_schema = RoleSchema()
 role_list_schema = RoleSchema(many=True)
-crud_role = CRUDRole(RoleModel)
+crud_role = CRUDRole()
 
 role = roles_ns.model('Role', {
     'name': fields.String('Admin'),
@@ -46,7 +46,7 @@ class Role(Resource):
 
 
 class RoleList(Resource):
-    @role_ns.doc('Get all the roles')
+    @roles_ns.doc('Get all the roles')
     def get(self):
         obj = crud_role.read_all(db.session)
         if obj:

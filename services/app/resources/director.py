@@ -4,7 +4,7 @@ from datetime import datetime
 
 from app.models.director import DirectorModel
 from app.schemas.director import DirectorSchema
-from app.CRUD.director import CRUDDirector
+from app.crud.director import CRUDDirector
 
 from app.db import db
 
@@ -16,7 +16,7 @@ directors_ns = Namespace('directors', description='Items related operations')
 
 director_schema = DirectorSchema()
 director_list_schema = DirectorSchema(many=True)
-crud_director = CRUDDirector(DirectorModel)
+crud_director = CRUDDirector()
 
 director = directors_ns.model('Director', {
     'name': fields.String('Christopher'),
@@ -48,7 +48,7 @@ class Director(Resource):
 
 
 class DirectorList(Resource):
-    @director_ns.doc('Get all the directors')
+    @directors_ns.doc('Get all the directors')
     def get(self):
         obj = crud_director.read_all(db.session)
         if obj:
