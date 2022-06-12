@@ -1,16 +1,21 @@
-from marshmallow_sqlalchemy import auto_field
-from app.ma import ma
-from app.models.poster import PosterModel
+from pydantic import BaseModel, AnyUrl
 
 
-class PosterSchema(ma.SQLAlchemyAutoSchema):
-    id = auto_field()
+class PosterBase(BaseModel):
+    url: AnyUrl
 
-    class Meta:
-        model = PosterModel
-        exclude = ('id',)
-        load_instance = True
-        load_only = ("movie",)
-        include_fk = True
-        include_relationships = True
-        ordered = True
+
+class PosterCreate(PosterBase):
+    pass
+
+
+class PosterUpdate(PosterBase):
+    pass
+
+
+class PosterDB(PosterBase):
+    id: int
+    url: AnyUrl
+
+    class Config:
+        orm_mode = True

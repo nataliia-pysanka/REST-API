@@ -1,19 +1,66 @@
-from marshmallow_sqlalchemy import auto_field
-from app.ma import ma
-from app.models.user import UserModel
-from app.schemas.role import RoleSchema
+from re import search as re_search
+from typing import Union, Optional
+from datetime import date
+from pydantic import BaseModel, SecretStr, validator
+from app.schemas.role import RoleDB
+from .validators import validate_value_alphabetical
 
 
-class UserSchema(ma.SQLAlchemyAutoSchema):
-    id = auto_field()
-    role = ma.Nested(RoleSchema)
+class UserBase(BaseModel):
+    nickname: str
 
-    class Meta:
-        model = UserModel
+    @validator('nickname')
+    def nickname_must_not_contain_space(cls, name_):
+        if ' ' in name_:
+            raise ValueError("Mustn't contain a space")
+        return name_.title()
 
-        # exclude = ('id', 'password')
-        dateformat = '%Y-%m-%d'
-        load_instance = True
-        include_fk = True
-        include_relationships = True
-        ordered = True
+
+class UserCreate(UserBase):
+    password: SecretStr
+    name: Union[str, None] = None
+    surname: Union[str, None] = None
+    date_birth: Union[date, None] = None
+
+    # validators
+    _normalize_name = validator('name',
+                                allow_reuse=True)(validate_value_alphabetical)
+    _normalize_surname = validator('surname',
+                                allow_reuse=True)(validate_value_alphabetical)
+
+    @validator('password')
+    def passwords_match(cls, password_, values, **kwargs):
+        if 'password' in values and password_ != values['password']:
+            raise ValueError('Passwords do not match')
+        return password_
+
+
+class UserUpdate(UserBase):
+    name: Union[str, None]
+    surname: Union[str, None]
+    date_birth: Union[date, None] = None
+
+    @validator('name', 'surname')
+    def name_alphanumeric(cls, name_):
+        pattern = "[^a-zA-Z]"
+        if re_search(pattern, name_):
+            raise ValueError('Use letters for name and surname')
+        return name_
+
+
+class UserDB(UserBase):
+    id: int
+    nickname: str
+    name: str = None
+    surname: str = None
+    date_birth: Optional[date] = None
+    date_registry: date
+    role: RoleDB
+
+    class Config:
+        orm_mode = True
+        json_encoders = {
+            RoleDB: lambda a: f'{a.name} ({a.enabled})',
+            'User': lambda u: f'{u.name} {u.surname} '
+                              f'({u.date_birth})',
+        }

@@ -1,15 +1,15 @@
 from sqlalchemy.orm import Session
-from app.schemas.genre import GenreSchema
+from app.schemas.genre import GenreCreate, GenreUpdate
 from app.crud.base import CRUDBase
-from app.models.genre import GenreModel
+from app.models.genre import Genre
 from typing import Any, List
 
 
-class CRUDGenre(CRUDBase[GenreModel, GenreSchema]):
+class CRUDGenre(CRUDBase[Genre, GenreCreate, GenreUpdate]):
     def __init__(self):
-        self.model = GenreModel
+        self.model = Genre
 
-    def create(self, session: Session, obj_data: Any) -> GenreModel:
+    def create(self, session: Session, obj_data: Any) -> Genre:
         db_obj = self.model(name=obj_data.name)
         session.add(db_obj)
         session.commit()

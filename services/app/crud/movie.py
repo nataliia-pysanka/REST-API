@@ -1,17 +1,16 @@
 from sqlalchemy.orm import Session
 
-from sqlalchemy import or_
-from app.schemas.movie import MovieSchema
+from app.schemas.movie import MovieCreate, MovieUpdate, MovieDB
 from app.crud.base import CRUDBase
-from app.models.movie import MovieModel
-from typing import Any, List, Dict
+from app.models.movie import Movie
+from typing import Any, List
 
 
-class CRUDMovie(CRUDBase[MovieModel, MovieSchema]):
+class CRUDMovie(CRUDBase[Movie, MovieCreate, MovieUpdate]):
     def __init__(self):
-        self.model = MovieModel
+        self.model = Movie
 
-    def create(self, session: Session, obj_data: Any) -> MovieModel:
+    def create(self, session: Session, obj_data: Any) -> MovieDB:
         db_obj = self.model(title=obj_data.title,
                             description=obj_data.description,
                             date_release=obj_data.date_release,
@@ -28,7 +27,11 @@ class CRUDMovie(CRUDBase[MovieModel, MovieSchema]):
     def get_by_filter(self, session: Session, id_genre: List[Any] = [],
                       release_date: List[str] = [],
                       id_director: List[Any] = [],
-                      offset: int = 0, limit: int = 100) -> List[MovieModel]:
+                      offset: int = 0, limit: int = 100) -> List[Movie]:
+        print(session)
+        print(id_genre)
+        print(release_date)
+        print(id_director)
         return session.query(self.model).filter(
                     self.model.id_genre.in_(id_genre),
                     self.model.date_release > release_date[0],

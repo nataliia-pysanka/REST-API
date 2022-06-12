@@ -1,22 +1,15 @@
 from flask import request
 from flask_restx import Resource, fields, Namespace
 
-from app.models.genre import GenreModel
-from app.schemas.genre import GenreSchema
+import app.util.responses as resp
+from app.util.responses import response_with
 from app.crud.genre import CRUDGenre
-
-from app.db import db
-
-GENRE_NOT_FOUND = "Genre not found."
-GENRE_ALREADY_EXISTS = "Genre '{}' already exists."
+from app.domain.genre import DomainGenre
 
 genre_ns = Namespace('genre', description='Item related operations')
 genres_ns = Namespace('genres', description='Items related operations')
 
-genre_schema = GenreSchema()
-genre_list_schema = GenreSchema(many=True)
-
-crud_genre = CRUDGenre()
+genre_domain = DomainGenre(CRUDGenre())
 
 genre = genres_ns.model('Genre', {
     'name': fields.String('Horror')
@@ -25,39 +18,58 @@ genre = genres_ns.model('Genre', {
 
 class Genre(Resource):
     def get(self, id: int):
-        obj = crud_genre.read(db.session, id)
+        obj = genre_domain.read(id)
         if obj:
-            return genre_schema.dump(obj), 200
-        return {'message': GENRE_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_200, value=obj)
+        return response_with(resp.NOT_FOUND_404,
+                             message=resp.NOT_FOUND)
 
     def delete(self, id: int):
-        obj = crud_genre.delete(db.session, id)
+        obj = genre_domain.delete(id)
         if obj:
-            return {'message': "Genre deleted successfully"}, 200
-        return {'message': GENRE_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_200,
+                                 message=resp.WAS_DELETED,
+                                 value=obj)
+        return response_with(resp.NOT_FOUND_404,
+                             message=resp.NOT_FOUND)
 
     @genre_ns.expect(genre)
     def put(self, id: int):
-        obj = crud_genre.update(db.session, request.get_json(), id)
+        data = request.get_json()
+        obj, err = genre_domain.update(data, id)
+        if err:
+            return response_with(resp.INVALID_INPUT_422,
+                                 message=resp.CANT_UPDATE,
+                                 value=err.errors())
         if obj:
-            return {'message': "Genre updated successfully"}, 200
-        return {'message': GENRE_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_201,
+                                 message=resp.UPDATED,
+                                 value=obj)
+
+        return response_with(resp.NOT_FOUND_404,
+                             message=resp.NOT_FOUND)
 
 
 class GenreList(Resource):
     @genres_ns.doc('Get all the genres')
     def get(self):
-        obj = crud_genre.read_all(db.session)
+        obj = genre_domain.read_all()
         if obj:
-            return genre_list_schema.dump(obj), 200
-        return {'message': GENRE_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_200, value=obj)
+        return response_with(resp.NOT_FOUND_404,
+                             message=resp.NOT_FOUND)
 
     @genres_ns.expect(genre)
     @genres_ns.doc('Create a genre')
     def post(self):
-        genre_json = request.get_json()
-        genre_data = genre_schema.load(genre_json)
-        obj = crud_genre.create(db.session, genre_data)
+        data = request.get_json()
+        obj, err = genre_domain.create(data)
+        if err:
+            return response_with(resp.INVALID_INPUT_422,
+                                 message=resp.CANT_CREATE,
+                                 value=err.errors())
         if obj:
+            return response_with(resp.SUCCESS_201, value=obj)
 
-            return genre_schema.dump(genre_data), 201
+        return response_with(resp.INVALID_INPUT_422,
+                             message=resp.CANT_CREATE)

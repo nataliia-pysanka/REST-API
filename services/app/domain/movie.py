@@ -1,18 +1,27 @@
-from datetime import datetime
+from sqlalchemy.orm import Session
+from pydantic import ValidationError
+from typing import Any
+from datetime import date, datetime
+
 from app.crud.genre import CRUDGenre
 from app.crud.director import CRUDDirector
+
+from app.schemas.movie import MovieCreate, MovieUpdate, MovieDB
 
 from app.domain.base import DomainBase
 from app.domain.director import DomainDirector
 from app.domain.genre import DomainGenre
 
-from app.db import db
+from app.util.log import logger
 
 genre_domain = DomainGenre(CRUDGenre())
 director_domain = DomainDirector(CRUDDirector())
 
+from app.db import db
+
 
 class DomainMovie(DomainBase):
+
     def get_movie_by_filter(self, args):
         offset = int(args.get('offset', '0'))
         limit = int(args.get('limit', '10'))
@@ -20,7 +29,8 @@ class DomainMovie(DomainBase):
         if args.get('genre') is None and \
                 args.get('release_date') is None and \
                 args.get('director') is None:
-            return self.crud.read_all(db.session, offset=offset, limit=limit)
+            query = self.crud.read_all(db.session, offset=offset, limit=limit)
+            return [MovieDB.from_orm(obj).dict() for obj in query]
 
         genres = args.get('genre', '')
         release_dates = args.get('release_date', '')
@@ -34,12 +44,48 @@ class DomainMovie(DomainBase):
         id_genre = genre_domain.get_id_by_name(genres)
         id_director = director_domain.get_id_by_name(directors)
 
-        return self.crud.get_by_filter(db.session,
+        query = self.crud.get_by_filter(db.session,
                                        id_genre=id_genre,
                                        release_date=release_dates,
                                        id_director=id_director,
                                        offset=offset,
                                        limit=limit)
 
+        if query:
+            return [MovieDB.from_orm(obj).dict() for obj in query]
+        return None
+
     def get_id_by_filter(self, **kwargs):
         return self.crud.get_id_by_filter(db.session, kwargs)
+
+    def create(self, obj_data: Any):
+        try:
+            data = MovieCreate.parse_obj(obj_data)
+        except ValidationError as err:
+            logger.error(err.raw_errors)
+            return None, err
+
+        query = super(DomainMovie, self).create(data)
+        if query:
+            return MovieDB.from_orm(query).dict(), None
+        return None, None
+
+    def read(self, id: Any):
+        query = super(DomainMovie, self).read(id)
+        if query:
+            return MovieDB.from_orm(query).dict()
+        return None
+
+    def read_all(self):
+        query = super(DomainMovie, self).read_all()
+        lst = []
+        for obj in query:
+            lst.append(MovieDB.from_orm(obj).dict())
+        return lst
+
+    def delete(self, id: Any):
+        # obj = MovieDB.from_orm(self.read(id)).dict()
+        query = super(DomainMovie, self).delete(id)
+        if not query:
+            return None
+        return True

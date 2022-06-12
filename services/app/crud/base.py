@@ -1,9 +1,7 @@
 from abc import ABC, abstractmethod
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
-from typing import List, Generic, TypeVar, Type, Any, Dict
-from flask.json import JSONEncoder
-from sqlalchemy import func
+from typing import List, Generic, TypeVar, Type, Any, Dict, Optional, Union
 
 
 @as_declarative()
@@ -17,7 +15,8 @@ class Base:
     
     
 ModelType = TypeVar("ModelType", bound=Base)
-BaseSchema = TypeVar("BaseSchema")
+CreateSchemaType = TypeVar("CreateSchemaType", bound=ModelType)
+UpdateSchemaType = TypeVar("UpdateSchemaType", bound=ModelType)
 
 
 class CRUDAbstract(ABC):
@@ -30,7 +29,7 @@ class CRUDAbstract(ABC):
         pass
 
     @abstractmethod
-    def read_all(self, session: Session, skip: int = 0, limit: int = 10):
+    def read_all(self, session: Session, offset: int = 0, limit: int = 10):
         pass
 
     @abstractmethod
@@ -42,12 +41,13 @@ class CRUDAbstract(ABC):
         pass
 
 
-class CRUDBase(Generic[ModelType, BaseSchema], CRUDAbstract):
+class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType],
+               CRUDAbstract):
     def __init__(self, model: Type[ModelType]):
         self.model = model
 
-    def create(self, session: Session, obj_data: Dict) -> ModelType:
-        db_obj = self.model(**obj_data)
+    def create(self, session: Session, obj: CreateSchemaType) -> ModelType:
+        db_obj = self.model(obj)
         session.add(db_obj)
         session.commit()
         session.refresh(db_obj)
@@ -57,28 +57,34 @@ class CRUDBase(Generic[ModelType, BaseSchema], CRUDAbstract):
         return session.query(self.model).get(id)
 
     def read_all(self, session: Session, offset: int = 0, limit: int = 10) \
-            -> List[ModelType]:
+            -> Optional[List[ModelType]]:
         return session.query(self.model).offset(offset).limit(limit).all()
 
-    def update(self, session: Session, obj_data: Any, id: Any) -> ModelType:
-        db_obj = session.query(self.model).get(id)
-        if db_obj:
-            for field in obj_data:
-                setattr(db_obj, field, obj_data[field])
+    def update(self, session: Session, obj: ModelType,
+               update_obj: Union[UpdateSchemaType, Dict[str, any]]) \
+            -> ModelType:
+        if isinstance(update_obj, dict):
+            update_data = update_obj
+        else:
+            update_data = update_obj.dict()
 
-            session.add(db_obj)
-            session.commit()
-            session.refresh(db_obj)
-            return db_obj
+        for field in update_data:
+            setattr(obj, field, update_data[field])
 
-    def delete(self, session: Session, id: Any) -> ModelType:
+        session.add(obj)
+        session.commit()
+        session.refresh(obj)
+        return obj
+
+    def delete(self, session: Session, id: Any) -> Optional[ModelType]:
         db_obj = session.query(self.model).get(id)
         if db_obj:
             session.delete(db_obj)
             session.commit()
             return db_obj
 
-    def get_id_by_filter(self, session: Session, kwargs) -> List[Any]:
+    def get_id_by_filter(self, session: Session, kwargs) \
+            -> Optional[List[ModelType]]:
         obj_all = session.query(self.model).filter_by(**kwargs).all()
         obj_id = [obj.id for obj in obj_all]
         return obj_id

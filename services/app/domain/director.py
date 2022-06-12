@@ -1,5 +1,10 @@
+from sqlalchemy.orm import Session
+from pydantic import ValidationError
+
 from app.domain.base import DomainBase
+from app.schemas.director import DirectorCreate, DirectorUpdate, DirectorDB
 from typing import Any, List
+from app.util.log import logger
 
 from app.db import db
 
@@ -9,3 +14,57 @@ class DomainDirector(DomainBase):
         if name_list:
             return self.crud.get_id_by_name(db.session, name_list)
         return []
+
+    def read(self, id: Any):
+        query = super(DomainDirector, self).read(id)
+        if query:
+            return DirectorDB.from_orm(query).dict()
+        return None
+
+    def read_all(self):
+        query = super(DomainDirector, self).read_all()
+        lst = []
+        for obj in query:
+            lst.append(DirectorDB.from_orm(obj).dict())
+        return lst
+
+    def create(self, obj_data: Any):
+        try:
+            data = DirectorCreate.parse_obj(obj_data)
+        except ValidationError as err:
+            logger.error(err.raw_errors)
+            return None, err
+
+        query = super(DomainDirector, self).create(data)
+        if query:
+            return DirectorDB.from_orm(query).dict(), None
+        return None, None
+
+    def update(self, obj_data: Any, id: Any):
+        query = super(DomainDirector, self).read(id)
+        if not query:
+            return None, None
+
+        obj = DirectorDB.from_orm(query)
+        obj_dict = obj.dict()
+
+        for field in obj_dict:
+            if field not in obj_dict:
+                obj_data.update({field: obj_dict[field]})
+
+        try:
+            data = DirectorUpdate.parse_obj(obj_data)
+        except ValidationError as err:
+            logger.error(err.raw_errors)
+            return None, err
+
+        query = super(DomainDirector, self).update(query, data)
+        if query:
+            return DirectorDB.from_orm(query).dict(), None
+        return None, None
+
+    def delete(self, id: Any):
+        query = super(DomainDirector, self).delete(id)
+        if not query:
+            return None
+        return DirectorDB.from_orm(query).dict()

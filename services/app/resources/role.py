@@ -1,21 +1,15 @@
 from flask import request
 from flask_restx import Resource, fields, Namespace
 
-from app.models.role import RoleModel
-from app.schemas.role import RoleSchema
+import app.util.responses as resp
+from app.util.responses import response_with
+from app.domain.role import DomainRole
 from app.crud.role import CRUDRole
-
-from app.db import db
-
-ROLE_NOT_FOUND = "Role not found."
-ROLE_ALREADY_EXISTS = "Role '{}' already exists."
 
 role_ns = Namespace('role', description='Item related operations')
 roles_ns = Namespace('roles', description='Items related operations')
 
-role_schema = RoleSchema()
-role_list_schema = RoleSchema(many=True)
-crud_role = CRUDRole()
+role_domain = DomainRole(CRUDRole())
 
 role = roles_ns.model('Role', {
     'name': fields.String('Admin'),
@@ -26,38 +20,59 @@ role = roles_ns.model('Role', {
 
 class Role(Resource):
     def get(self, id: int):
-        obj = crud_role.read(db.session, id)
+        obj = role_domain.read(id)
         if obj:
-            return role_schema.dump(obj), 200
-        return {'message': ROLE_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_200, value=obj)
+        return response_with(resp.NOT_FOUND_404,
+                             message=resp.NOT_FOUND)
 
     def delete(self, id: int):
-        obj = crud_role.delete(db.session, id)
+        obj = role_domain.delete(id)
         if obj:
-            return {'message': "Role deleted successfully"}, 200
-        return {'message': ROLE_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_200,
+                                 message=resp.WAS_DELETED,
+                                 value=obj)
+        return response_with(resp.NOT_FOUND_404,
+                             message=resp.NOT_FOUND)
 
     @role_ns.expect(role)
     def put(self, id: int):
-        obj = crud_role.update(db.session, request.get_json(), id)
-        if obj:
-            return {'message': "Role updated successfully"}, 200
-        return {'message': ROLE_NOT_FOUND}, 404
+        def put(self, id: int):
+            data = request.get_json()
+            obj, err = role_domain.update(data, id)
+            if err:
+                return response_with(resp.INVALID_INPUT_422,
+                                     message=resp.CANT_UPDATE,
+                                     value=err.errors())
+            if obj:
+                return response_with(resp.SUCCESS_201,
+                                     message=resp.UPDATED,
+                                     value=obj)
+
+            return response_with(resp.NOT_FOUND_404,
+                                 message=resp.NOT_FOUND)
 
 
 class RoleList(Resource):
     @roles_ns.doc('Get all the roles')
     def get(self):
-        obj = crud_role.read_all(db.session)
+        obj = role_domain.read_all()
         if obj:
-            return role_list_schema.dump(obj), 200
-        return {'message': ROLE_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_200, value=obj)
+        return response_with(resp.NOT_FOUND_404,
+                             message=resp.NOT_FOUND)
 
     @roles_ns.expect(role)
     @roles_ns.doc('Create a role')
     def post(self):
-        role_json = request.get_json()
-        role_data = role_schema.load(role_json)
-        obj = crud_role.create(db.session, role_data)
+        data = request.get_json()
+        obj, err = role_domain.create(data)
+        if err:
+            return response_with(resp.INVALID_INPUT_422,
+                                 message=resp.CANT_CREATE,
+                                 value=err.errors())
         if obj:
-            return role_schema.dump(role_data), 201
+            return response_with(resp.SUCCESS_201, value=obj)
+
+        return response_with(resp.INVALID_INPUT_422,
+                             message=resp.CANT_CREATE)

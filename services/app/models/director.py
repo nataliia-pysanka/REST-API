@@ -1,15 +1,14 @@
 from app.db import db
-from typing import List
 
 
-class DirectorModel(db.Model):
+class Director(db.Model):
     __tablename__: str = 'director'
 
     id = db.Column(db.INTEGER, primary_key=True, index=True)
     name = db.Column(db.VARCHAR, nullable=False)
     surname = db.Column(db.VARCHAR, nullable=False)
-    date_birth = db.Column(db.DATE)
-    wiki_url = db.Column(db.VARCHAR)
+    date_birth = db.Column(db.DATE, nullable=True, default=None)
+    wiki_url = db.Column(db.VARCHAR, nullable=True, default=None)
 
     def __init__(self, name, surname, date_birth, wiki_url):
         self.name = name
@@ -21,3 +20,21 @@ class DirectorModel(db.Model):
         return "<DirectorModel(name='%s', surname='%s')>" % (
             self.name, self.surname)
 
+
+# from sqlalchemy import Date, Column, Integer, String
+# from sqlalchemy.orm import relationship
+
+# from app.db import Base
+#
+#
+# class Director(Base):
+#     __tablename__: str = 'directors'
+#     __table_args__ = {'extend_existing': True}
+#
+#     id = Column(Integer, primary_key=True, index=True)
+#     name = Column(String, nullable=False)
+#     surname = Column(String, nullable=False)
+#     date_birth = Column(Date, default=None)
+#     wiki_url = Column(String, default=None)
+#
+#     movies = relationship("Movie", back_populates="director")

@@ -1,35 +1,34 @@
 from app.db import db
-from typing import List
-from app.models.genre import GenreModel
-from app.models.director import DirectorModel
-from app.models.poster import PosterModel
-from app.models.role import RoleModel
-from app.models.user import UserModel
+from app.models.genre import Genre
+from app.models.director import Director
+from app.models.poster import Poster
+from app.models.role import Role
+from app.models.user import User
 
 
-class MovieModel(db.Model):
+class Movie(db.Model):
     __tablename__: str = 'movie'
 
     id = db.Column(db.INTEGER, primary_key=True, index=True)
     title = db.Column(db.VARCHAR, nullable=False)
-    description = db.Column(db.TEXT)
-    date_release = db.Column(db.DATE)
-    rating = db.Column(db.Float(precision=2))
+    description = db.Column(db.TEXT, nullable=True, default=None)
+    date_release = db.Column(db.DATE, nullable=True, default=None)
+    rating = db.Column(db.Float(precision=2), nullable=True, default=None)
 
     id_genre = db.Column(db.INTEGER, db.ForeignKey('genre.id'), nullable=True,
                          default=None)
-    genre = db.relationship("GenreModel", )
+    genre = db.relationship("Genre", )
 
     id_director = db.Column(db.INTEGER, db.ForeignKey('director.id'),
                             nullable=True, default=None)
-    director = db.relationship("DirectorModel", )
+    director = db.relationship("Director", )
 
     id_poster = db.Column(db.INTEGER, db.ForeignKey('poster.id'), default=None)
-    poster = db.relationship("PosterModel", )
+    poster = db.relationship("Poster", )
 
     id_user = db.Column(db.INTEGER, db.ForeignKey('user.id'), nullable=False,
                         default=None)
-    user = db.relationship("UserModel", )
+    user = db.relationship("User", )
 
     def __init__(self, title, description, date_release, rating,
                 id_genre=None, id_director=None, id_poster=None, id_user=None):
@@ -45,3 +44,41 @@ class MovieModel(db.Model):
     def __repr__(self):
         return "<Movie(title='%s', rating='%s', date_release='%s')>" % (
             self.title, self.rating, self.date_release)
+
+# from sqlalchemy import Text, Float, Date, Column, ForeignKey, Integer, String
+# from sqlalchemy.orm import relationship
+#
+# from app.db import Base
+#
+#
+# class Movie(Base):
+#     __tablename__: str = 'movies'
+#     __table_args__ = {'extend_existing': True}
+#
+#     id = Column(Integer, primary_key=True, index=True)
+#     title = Column(String, nullable=False)
+#     description = Column(Text, default=None)
+#     date_release = Column(Date, default=None)
+#     rating = Column(Float(precision=2), default=None)
+#
+#     id_genre = Column(Integer, ForeignKey('genre.id'),
+#                       nullable=True,
+#                       default=None)
+#     genre = relationship("Genre",
+#                          back_populates="movies")
+#
+#     id_director = Column(Integer, ForeignKey('director.id'),
+#                          nullable=True,
+#                          default=None)
+#     director = relationship("Director",
+#                             back_populates="movies")
+#
+#     id_poster = Column(Integer, ForeignKey('poster.id'),
+#                        nullable=True,
+#                        default=None)
+#     poster = relationship("Poster", back_populates="movies")
+#
+#     id_user = Column(Integer, ForeignKey('user.id'),
+#                      nullable=False)
+#     user = relationship("User",
+#                         back_populates="movies")

@@ -1,26 +1,18 @@
-from flask import request
+from flask import request, jsonify
 from flask_restx import Resource, fields, Namespace
 from flask_login import login_required, current_user
-from flask import jsonify
 
-from app.schemas.movie import MovieSchema
+from app.schemas.movie import MovieCreate, MovieUpdate
 from app.crud.movie import CRUDMovie
+from app.crud.user import CRUDUser
 from app.domain.movie import DomainMovie
+from app.domain.user import DomainUser
 
 from app.util.responses import response_with
 import app.util.responses as resp
 
-MOVIE_NOT_FOUND = "Movie not found."
-MOVIE_ALREADY_EXISTS = "Movie '{}' already exists."
-
 movie_ns = Namespace('movie', description='Item related operations')
 movies_ns = Namespace('movies', description='Items related operations')
-search_ns = Namespace('movies', description='Items related operations')
-
-movie_schema = MovieSchema()
-movie_list_schema = MovieSchema(many=True)
-
-movie_domain = DomainMovie(CRUDMovie())
 
 movie = movies_ns.model('Movie', {
     'title': fields.String('Name of the Movie'),
@@ -33,41 +25,56 @@ movie = movies_ns.model('Movie', {
     'id_user': fields.Integer
 })
 
+movie_domain = DomainMovie(CRUDMovie())
+user_domain = DomainUser(CRUDUser())
+
 
 class Movie(Resource):
     def get(self, id):
         obj = movie_domain.read(id)
         if obj:
-            return response_with(resp.SUCCESS_200,
-                             value={"movie": movie_schema.dump(obj)})
+            return response_with(resp.SUCCESS_200, value=obj)
         return response_with(resp.NOT_FOUND_404,
-                             message="Movie not Found")
-
+                             message=resp.NOT_FOUND)
 
     @login_required
     def delete(self, id):
-        user_id = movie_domain.read(id).id_user
+        user = movie_domain.read(id)
+        if not user:
+            return response_with(resp.NOT_FOUND_404,
+                                 message=resp.NOT_FOUND)
+
+        user_id = user['user']['id']
         if current_user.id == user_id or current_user.is_admin():
             obj = movie_domain.delete(id)
+            print('obj', obj)
             if obj:
                 return response_with(resp.SUCCESS_200,
-                                     value={"movie": movie_schema.dump(obj)},
-                                     message="Movie deleted successfully")
-            return response_with(resp.NOT_FOUND_404,
-                             message="Movie not Found")
+                                     message=resp.WAS_DELETED)
         else:
             return response_with(resp.UNAUTHORIZED_401,
-                             message="No rights for deleting")
+                             message=resp.NO_RIGHTS)
 
     @movie_ns.expect(movie)
     @login_required
     def put(self, id):
-        obj = movie_domain.update(request.get_json(), id)
-        if obj:
-            return response_with(resp.SUCCESS_200,
-                             message="Movie updated successfully")
-        return response_with(resp.NOT_FOUND_404,
-                             message="Movie not Found")
+        user_id = movie_domain.read(id).id_user
+        if current_user.id == user_id or current_user.is_admin():
+            data = request.get_json()
+            obj, err = movie_domain.update(data, id)
+            if err:
+                return response_with(resp.INVALID_INPUT_422,
+                                     message=resp.CANT_UPDATE,
+                                     value=err.errors())
+            if obj:
+                return response_with(resp.SUCCESS_201, message=resp.UPDATED,
+                                     value=obj)
+
+            return response_with(resp.NOT_FOUND_404,
+                                 message=resp.NOT_FOUND)
+        else:
+            return response_with(resp.UNAUTHORIZED_401,
+                             message=resp.NO_RIGHTS)
 
 
 class MovieList(Resource):
@@ -75,14 +82,15 @@ class MovieList(Resource):
     # def get(self):
     #     obj = movie_domain.read_all()
     #     if obj:
-    #         return movie_list_schema.dump(obj), 200
-    #     return {'message': MOVIE_NOT_FOUND}, 404
+    #         return response_with(resp.SUCCESS_200, value=obj)
+    #     return response_with(resp.NOT_FOUND_404,
+    #                          message=resp.NOT_FOUND)
+
     @movies_ns.doc('Get all the movies')
     def get(self):
         args = request.args
 
-        obj_all = movie_domain.get_movie_by_filter(args)
-        json = [movie_schema.dump(obj) for obj in obj_all]
+        json = movie_domain.get_movie_by_filter(args)
 
         if not json:
             return response_with(resp.NOT_FOUND_404,
@@ -90,8 +98,13 @@ class MovieList(Resource):
         offset = int(args.get('offset', '0'))
         limit = int(args.get('limit', '10'))
 
-        change_query = f'offset={offset}'
         query = request.full_path
+        if query.find('offset=') == -1:
+            query += f'&offset={offset}'
+        if query.find('limit=') == -1:
+            query += f'&limit={limit}'
+
+        change_query = f'offset={offset}'
 
         if json:
             next_url = query.replace(change_query, f'offset={offset + limit}')
@@ -106,13 +119,24 @@ class MovieList(Resource):
         return jsonify({'prev_url': prev_url, 'next_url': next_url,
                         'result': json})
 
-
     @movies_ns.expect(movie)
     @movies_ns.doc('Create a movie')
     @login_required
     def post(self):
-        movie_json = request.get_json()
-        movie_data = movie_schema.load(movie_json)
-        obj = movie_domain.create(movie_data)
+        data = request.get_json()
+        # user = user_domain.get_dict_by_nickname('egepsihora')
+        data['id_user'] = 1
+        # data['nickname'] = user['nickname']
+        # data['date_registry'] = user['date_registry']
+        # data['id_role'] = user['id_role']
+
+        obj, err = movie_domain.create(data)
+        if err:
+            return response_with(resp.INVALID_INPUT_422,
+                                 message=resp.CANT_CREATE,
+                                 value=err.errors())
         if obj:
-            return movie_schema.dump(movie_data), 201
+            return response_with(resp.SUCCESS_201, value=obj)
+
+        return response_with(resp.INVALID_INPUT_422,
+                             message=resp.CANT_CREATE)

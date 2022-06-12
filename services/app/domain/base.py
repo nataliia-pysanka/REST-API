@@ -8,8 +8,7 @@ class DomainBase:
     def __init__(self, crud: CRUDAbstract):
         self.crud = crud
 
-    def create(self, obj_data: Dict):
-        print(type(obj_data))
+    def create(self, obj_data: Any):
         return self.crud.create(db.session, obj_data)
 
     def read(self, id: Any):

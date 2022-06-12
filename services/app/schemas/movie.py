@@ -1,26 +1,64 @@
-from marshmallow_sqlalchemy import auto_field
-from app.ma import ma
-from app.models.movie import MovieModel
-from app.schemas.director import DirectorSchema
-from app.schemas.poster import PosterSchema
-from app.schemas.user import UserSchema
-from app.schemas.genre import GenreSchema
+from typing import Union, List, Optional, Any
+from datetime import date, datetime
+from pydantic import BaseModel, validator
+
+from app.schemas.user import UserDB, UserCreate
+from app.schemas.genre import GenreDB
+from app.schemas.poster import PosterDB
+from app.schemas.director import DirectorDB
+
+from .validators import validate_value_alphabetical
 
 
-class MovieSchema(ma.SQLAlchemyAutoSchema):
-    id = auto_field()
+class MovieBase(BaseModel):
+    title: str
 
-    genre = ma.Nested(GenreSchema)
-    director = ma.Nested(DirectorSchema)
-    poster = ma.Nested(PosterSchema)
-    user = ma.Nested(UserSchema)
+    # validators
+    _normalize_title = validator('title',
+                                allow_reuse=True)(validate_value_alphabetical)
 
-    class Meta:
-        model = MovieModel
+    # @validator('title', pre=True)
+    # def del_dot(cls, dot):
+    #     if isinstance(dot, str):
+    #         return ''
+    #     return dot
 
-        exclude = ('id', 'id_genre', 'id_director', 'id_poster', 'id_user')
-        dateformat = '%Y-%m-%d'
-        load_instance = True
-        include_fk = True
-        include_relationships = True
-        ordered = True
+
+class MovieCreate(MovieBase):
+    description: Union[str, None] = None
+    date_release: Union[date, None] = None
+    rating: Union[float, None] = None
+    id_genre: Union[List[Union[str, Any]], None] = None
+    id_director: Union[str, Any, None] = None
+    id_poster: Union[List[Union[str, Any]], None] = None
+    id_user: Union[str, Any, None] = None
+
+    # @validator('date_release')
+    # def date_normal(cls, date_):
+    #     if datetime(date_).year < datetime('1895-01-01').year:
+    #         raise ValueError('Year should be bigger than 1895')
+    #     return date_
+
+
+class MovieUpdate(MovieBase):
+    description: Union[str, None] = None
+    date_release: Union[date, None] = None
+    rating: Union[float, None] = None
+    id_genre: Optional[List[Union[str, Any]]] = None
+    id_director: Union[str, Any, None] = None
+    id_poster: Optional[List[Union[str, Any]]] = None
+
+
+class MovieDB(MovieBase):
+    id: int
+    title: str
+    description: Union[str, None] = None
+    date_release: Union[date, None] = None
+    rating: Union[float, None] = None
+    genre: Union[List[GenreDB], GenreDB, None] = None
+    director: Optional[DirectorDB] = None
+    poster: Union[List[PosterDB], PosterDB, None] = None
+    user: UserDB
+    
+    class Config:
+        orm_mode = True
