@@ -1,3 +1,4 @@
+"""Module for describing table Genre"""
 from app.db import db
 from app.models.genre import Genre
 from app.models.director import Director
@@ -7,6 +8,7 @@ from app.models.user import User
 
 
 class Movie(db.Model):
+    """Table movie"""
     __tablename__: str = 'movie'
 
     id = db.Column(db.INTEGER, primary_key=True, index=True)
@@ -44,41 +46,3 @@ class Movie(db.Model):
     def __repr__(self):
         return "<Movie(title='%s', rating='%s', date_release='%s')>" % (
             self.title, self.rating, self.date_release)
-
-# from sqlalchemy import Text, Float, Date, Column, ForeignKey, Integer, String
-# from sqlalchemy.orm import relationship
-#
-# from app.db import Base
-#
-#
-# class Movie(Base):
-#     __tablename__: str = 'movies'
-#     __table_args__ = {'extend_existing': True}
-#
-#     id = Column(Integer, primary_key=True, index=True)
-#     title = Column(String, nullable=False)
-#     description = Column(Text, default=None)
-#     date_release = Column(Date, default=None)
-#     rating = Column(Float(precision=2), default=None)
-#
-#     id_genre = Column(Integer, ForeignKey('genre.id'),
-#                       nullable=True,
-#                       default=None)
-#     genre = relationship("Genre",
-#                          back_populates="movies")
-#
-#     id_director = Column(Integer, ForeignKey('director.id'),
-#                          nullable=True,
-#                          default=None)
-#     director = relationship("Director",
-#                             back_populates="movies")
-#
-#     id_poster = Column(Integer, ForeignKey('poster.id'),
-#                        nullable=True,
-#                        default=None)
-#     poster = relationship("Poster", back_populates="movies")
-#
-#     id_user = Column(Integer, ForeignKey('user.id'),
-#                      nullable=False)
-#     user = relationship("User",
-#                         back_populates="movies")

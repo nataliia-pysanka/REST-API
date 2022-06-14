@@ -1,3 +1,4 @@
+"""Module for Movie pydantic models"""
 from typing import Union, List, Optional, Any
 from datetime import date, datetime
 from pydantic import BaseModel, validator
@@ -11,6 +12,7 @@ from .validators import validate_value_alphabetical
 
 
 class MovieBase(BaseModel):
+    """Base pydantic model for Director"""
     title: str
 
     # validators
@@ -25,6 +27,7 @@ class MovieBase(BaseModel):
 
 
 class MovieCreate(MovieBase):
+    """Create pydantic model for Movie"""
     description: Union[str, None] = None
     date_release: Union[date, None] = None
     rating: Union[float, None] = None
@@ -41,6 +44,7 @@ class MovieCreate(MovieBase):
 
 
 class MovieUpdate(MovieBase):
+    """Update pydantic model for Movie"""
     description: Union[str, None] = None
     date_release: Union[date, None] = None
     rating: Union[float, None] = None
@@ -50,6 +54,7 @@ class MovieUpdate(MovieBase):
 
 
 class MovieDB(MovieBase):
+    """ORM pydantic model for Movie"""
     id: int
     title: str
     description: Union[str, None] = None

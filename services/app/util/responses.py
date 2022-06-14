@@ -1,3 +1,4 @@
+"""Module for storage responses"""
 from flask import make_response, jsonify
 
 NOT_FOUND = "Object Not Found."
@@ -11,6 +12,7 @@ NO_RIGHTS = "No Rights For Operation."
 
 
 def response_with(response, value=None, message=None, error=None, headers={}):
+    """Returns response with value, message and error"""
     result = {'message': response['message']}
 
     if value:

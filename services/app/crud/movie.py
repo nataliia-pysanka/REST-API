@@ -1,16 +1,18 @@
+"""Module for sub-class CRUDMovie"""
+from typing import Any, List
 from sqlalchemy.orm import Session
-
 from app.schemas.movie import MovieCreate, MovieUpdate, MovieDB
 from app.crud.base import CRUDBase
 from app.models.movie import Movie
-from typing import Any, List
 
 
 class CRUDMovie(CRUDBase[Movie, MovieCreate, MovieUpdate]):
+    """Class for CRUD operations with instance movie"""
     def __init__(self):
         self.model = Movie
 
     def create(self, session: Session, obj_data: Any) -> MovieDB:
+        """Creates object and save to session"""
         db_obj = self.model(title=obj_data.title,
                             description=obj_data.description,
                             date_release=obj_data.date_release,
@@ -28,10 +30,7 @@ class CRUDMovie(CRUDBase[Movie, MovieCreate, MovieUpdate]):
                       release_date: List[str] = [],
                       id_director: List[Any] = [],
                       offset: int = 0, limit: int = 100) -> List[Movie]:
-        print(session)
-        print(id_genre)
-        print(release_date)
-        print(id_director)
+        """Returns object by filter"""
         return session.query(self.model).filter(
                     self.model.id_genre.in_(id_genre),
                     self.model.date_release > release_date[0],

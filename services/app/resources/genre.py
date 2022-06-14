@@ -1,3 +1,4 @@
+"""Module for Genre resources"""
 from flask import request
 from flask_restx import Resource, fields, Namespace
 
@@ -19,7 +20,9 @@ genre = genres_ns.model('Genre', {
 
 
 class Genre(Resource):
+    """Class-resource for single instance Genre"""
     def get(self, id: int):
+        """GET method"""
         obj = genre_domain.read(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
@@ -27,6 +30,7 @@ class Genre(Resource):
                              message=resp.NOT_FOUND)
 
     def delete(self, id: int):
+        """DELETE method"""
         obj = genre_domain.delete(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200,
@@ -37,6 +41,7 @@ class Genre(Resource):
 
     @genre_ns.expect(genre)
     def put(self, id: int):
+        """PUT method"""
         data = request.get_json()
         obj, err = genre_domain.update(db.session, data, id)
         if err:
@@ -53,8 +58,10 @@ class Genre(Resource):
 
 
 class GenreList(Resource):
+    """Class-resource for couple instances of Genre"""
     @genres_ns.doc('Get all the genres')
     def get(self):
+        """GET method"""
         obj = genre_domain.read_all(db.session)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
@@ -64,6 +71,7 @@ class GenreList(Resource):
     @genres_ns.expect(genre)
     @genres_ns.doc('Create a genre')
     def post(self):
+        """POST method"""
         data = request.get_json()
         obj, err = genre_domain.create(db.session, data)
         if err:

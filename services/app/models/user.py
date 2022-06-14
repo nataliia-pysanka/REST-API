@@ -1,12 +1,13 @@
+"""Module for describing table User"""
 from app.db import db
-from typing import List
 from datetime import datetime
 from app.models.role import Role
 
-from app.config import ADMIN_ID
+from app.config_dev import ADMIN_ID
 
 
 class User(db.Model):
+    """Table user"""
     __tablename__: str = 'user'
     id = db.Column(db.INTEGER, primary_key=True)
     nickname = db.Column(db.VARCHAR, unique=True, nullable=False)

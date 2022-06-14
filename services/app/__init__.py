@@ -7,7 +7,7 @@ from werkzeug.exceptions import HTTPException
 
 import click
 
-from .config import Config
+from .config_dev import Config
 from app.db import db
 from .util.responses import response_with
 from .util.log import logger

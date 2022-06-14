@@ -1,3 +1,4 @@
+"""Module for Poster resources"""
 from flask import request
 from flask_restx import Resource, fields, Namespace
 
@@ -19,7 +20,9 @@ poster = posters_ns.model('Poster', {
 
 
 class Poster(Resource):
+    """Class-resource for single instance Poster"""
     def get(self, id: int):
+        """GET method"""
         obj = poster_domain.read(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
@@ -27,6 +30,7 @@ class Poster(Resource):
                              message=resp.NOT_FOUND)
 
     def delete(self, id: int):
+        """DELETE method"""
         obj = poster_domain.delete(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200,
@@ -38,6 +42,7 @@ class Poster(Resource):
 
     @poster_ns.expect(poster)
     def put(self, id: int):
+        """PUT method"""
         data = request.get_json()
         obj, err = poster_domain.update(db.session, data, id)
         if err:
@@ -54,8 +59,10 @@ class Poster(Resource):
 
 
 class PosterList(Resource):
+    """Class-resource for couple instances of Poster"""
     @posters_ns.doc('Get all the posters')
     def get(self):
+        """GET method"""
         obj = poster_domain.read_all(db.session)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
@@ -65,6 +72,7 @@ class PosterList(Resource):
     @posters_ns.expect(poster)
     @posters_ns.doc('Create a poster')
     def post(self):
+        """POST method"""
         data = request.get_json()
         obj, err = poster_domain.create(db.session, data)
         if err:
