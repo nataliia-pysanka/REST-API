@@ -1,22 +1,15 @@
 from flask import request
 from flask_restx import Resource, fields, Namespace
-from datetime import datetime
 
-from app.models.director import DirectorModel
-from app.schemas.director import DirectorSchema
+import app.util.responses as resp
+from app.util.responses import response_with
 from app.crud.director import CRUDDirector
-
-from app.db import db
-
-DIRECTOR_NOT_FOUND = "Director not found."
-DIRECTOR_ALREADY_EXISTS = "Director '{}' already exists."
+from app.domain.director import DomainDirector
 
 director_ns = Namespace('director', description='Item related operations')
 directors_ns = Namespace('directors', description='Items related operations')
 
-director_schema = DirectorSchema()
-director_list_schema = DirectorSchema(many=True)
-crud_director = CRUDDirector()
+director_domain = DomainDirector(CRUDDirector())
 
 director = directors_ns.model('Director', {
     'name': fields.String('Christopher'),
@@ -28,39 +21,57 @@ director = directors_ns.model('Director', {
 
 class Director(Resource):
     def get(self, id: int):
-        obj = crud_director.read(db.session, id)
+        obj = director_domain.read(id)
         if obj:
-            return director_schema.dump(obj), 200
-        return {'message': DIRECTOR_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_200, value=obj)
+        return response_with(resp.NOT_FOUND_404,
+                             message=resp.NOT_FOUND)
 
     def delete(self, id: int):
-        obj = crud_director.delete(db.session, id)
+        obj = director_domain.delete(id)
         if obj:
-            return {'message': "Director deleted successfully"}, 200
-        return {'message': DIRECTOR_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_200,
+                                 message=resp.WAS_DELETED,
+                                 value=obj)
+        return response_with(resp.NOT_FOUND_404,
+                             message=resp.NOT_FOUND)
 
     @director_ns.expect(director)
     def put(self, id: int):
-        obj = crud_director.update(db.session, request.get_json(), id)
+        data = request.get_json()
+        obj, err = director_domain.update(data, id)
+        if err:
+            return response_with(resp.INVALID_INPUT_422,
+                                 message=resp.CANT_UPDATE,
+                                 value=err.errors())
         if obj:
-            return {'message': "Director updated successfully"}, 200
-        return {'message': DIRECTOR_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_201, message=resp.UPDATED,
+                                value=obj)
+
+        return response_with(resp.NOT_FOUND_404,
+                             message=resp.NOT_FOUND)
 
 
 class DirectorList(Resource):
     @directors_ns.doc('Get all the directors')
     def get(self):
-        obj = crud_director.read_all(db.session)
+        obj = director_domain.read_all()
         if obj:
-            return director_list_schema.dump(obj), 200
-        return {'message': DIRECTOR_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_200, value=obj)
+        return response_with(resp.NOT_FOUND_404,
+                             message=resp.NOT_FOUND)
 
     @directors_ns.expect(director)
     @directors_ns.doc('Create a director')
     def post(self):
-        director_json = request.get_json()
-        director_data = director_schema.load(director_json)
-        obj = crud_director.create(db.session, director_data)
+        data = request.get_json()
+        obj, err = director_domain.create(data)
+        if err:
+            return response_with(resp.INVALID_INPUT_422,
+                                 message=resp.CANT_CREATE,
+                                 value=err.errors())
         if obj:
-            return director_schema.dump(director_data), 201
+            return response_with(resp.SUCCESS_201, value=obj)
 
+        return response_with(resp.INVALID_INPUT_422,
+                             message=resp.CANT_CREATE)

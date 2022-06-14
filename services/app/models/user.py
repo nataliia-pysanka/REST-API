@@ -1,22 +1,22 @@
 from app.db import db
 from typing import List
 from datetime import datetime
-from app.models.role import RoleModel
+from app.models.role import Role
 
 from app.config import ADMIN_ID
 
 
-class UserModel(db.Model):
+class User(db.Model):
     __tablename__: str = 'user'
     id = db.Column(db.INTEGER, primary_key=True)
     nickname = db.Column(db.VARCHAR, unique=True, nullable=False)
     password = db.Column(db.VARCHAR, nullable=False)
-    name = db.Column(db.VARCHAR)
-    surname = db.Column(db.VARCHAR)
-    date_birth = db.Column(db.DATE)
+    name = db.Column(db.VARCHAR, nullable=True, default=None)
+    surname = db.Column(db.VARCHAR, nullable=True, default=None)
+    date_birth = db.Column(db.DATE, nullable=True, default=None)
     date_registry = db.Column(db.DATE, default=datetime)
-    id_role = db.Column(db.INTEGER, db.ForeignKey('role.id'))
-    role = db.relationship("RoleModel", )
+    id_role = db.Column(db.INTEGER, db.ForeignKey('role.id'), nullable=False)
+    role = db.relationship("Role", )
 
     def __init__(self, nickname, password, name, surname, date_birth,
                  date_registry, id_role):
@@ -57,6 +57,7 @@ class UserModel(db.Model):
         return str(self.id)
 
     def is_admin(self):
-        if self.id_role == ADMIN_ID:
+        if str(self.id_role) == ADMIN_ID:
             return True
         return False
+

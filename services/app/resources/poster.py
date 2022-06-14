@@ -1,22 +1,15 @@
 from flask import request
 from flask_restx import Resource, fields, Namespace
 
-from app.models.poster import PosterModel
-from app.schemas.poster import PosterSchema
+import app.util.responses as resp
+from app.util.responses import response_with
+from app.domain.poster import DomainPoster
 from app.crud.poster import CRUDPoster
-
-from app.db import db
-
-POSTER_NOT_FOUND = "Poster not found."
-POSTER_ALREADY_EXISTS = "Poster '{}' already exists."
 
 poster_ns = Namespace('poster', description='Item related operations')
 posters_ns = Namespace('posters', description='Items related operations')
 
-poster_schema = PosterSchema()
-poster_list_schema = PosterSchema(many=True)
-
-crud_poster = CRUDPoster()
+poster_domain = DomainPoster(CRUDPoster())
 
 poster = posters_ns.model('Poster', {
     'url': fields.String('Path to the Poster')
@@ -25,39 +18,59 @@ poster = posters_ns.model('Poster', {
 
 class Poster(Resource):
     def get(self, id: int):
-        obj = crud_poster.read(db.session, id)
+        obj = poster_domain.read(id)
         if obj:
-            return poster_schema.dump(obj), 200
-        return {'message': POSTER_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_200, value=obj)
+        return response_with(resp.NOT_FOUND_404,
+                             message=resp.NOT_FOUND)
 
     def delete(self, id: int):
-        obj = crud_poster.delete(db.session, id)
+        obj = poster_domain.delete(id)
         if obj:
-            return {'message': "Poster deleted successfully"}, 200
-        return {'message': POSTER_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_200,
+                                 message=resp.WAS_DELETED,
+                                 value=obj)
+        return response_with(resp.NOT_FOUND_404,
+                             message=resp.NOT_FOUND)
+
 
     @poster_ns.expect(poster)
     def put(self, id: int):
-        obj = crud_poster.update(db.session, request.get_json(), id)
+        data = request.get_json()
+        obj, err = poster_domain.update(data, id)
+        if err:
+            return response_with(resp.INVALID_INPUT_422,
+                                 message=resp.CANT_UPDATE,
+                                 value=err.errors())
         if obj:
-            return {'message': "Poster updated successfully"}, 200
-        return {'message': POSTER_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_201,
+                                 message=resp.UPDATED,
+                                 value=obj)
+
+        return response_with(resp.NOT_FOUND_404,
+                             message=resp.NOT_FOUND)
 
 
 class PosterList(Resource):
     @posters_ns.doc('Get all the posters')
     def get(self):
-        obj = crud_poster.read_all(db.session)
+        obj = poster_domain.read_all()
         if obj:
-            return poster_list_schema.dump(obj), 200
-        return {'message': POSTER_NOT_FOUND}, 404
+            return response_with(resp.SUCCESS_200, value=obj)
+        return response_with(resp.NOT_FOUND_404,
+                             message=resp.NOT_FOUND)
 
     @posters_ns.expect(poster)
     @posters_ns.doc('Create a poster')
     def post(self):
-        poster_json = request.get_json()
-        poster_data = poster_schema.load(poster_json)
-        obj = crud_poster.create(db.session, poster_data)
+        data = request.get_json()
+        obj, err = poster_domain.create(data)
+        if err:
+            return response_with(resp.INVALID_INPUT_422,
+                                 message=resp.CANT_CREATE,
+                                 value=err.errors())
         if obj:
+            return response_with(resp.SUCCESS_201, value=obj)
 
-            return poster_schema.dump(poster_data), 201
+        return response_with(resp.INVALID_INPUT_422,
+                             message=resp.CANT_CREATE)

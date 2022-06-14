@@ -1,15 +1,29 @@
-from marshmallow_sqlalchemy import auto_field
-from app.ma import ma
-from app.models.role import RoleModel
+from typing import Optional
+from pydantic import BaseModel, validator
+from .validators import validate_value_alphabetical
 
 
-class RoleSchema(ma.SQLAlchemyAutoSchema):
-    id = auto_field()
+class RoleBase(BaseModel):
+    name: str
 
-    class Meta:
-        model = RoleModel
-        # exclude = ('id',)
-        load_instance = True
-        # load_only = ("user",)
-        include_fk = True
-        include_relationships = True
+    # validators
+    _normalize_name = validator('name',
+                                allow_reuse=True)(validate_value_alphabetical)
+
+
+class RoleCreate(RoleBase):
+    enabled: bool = True
+
+
+class RoleUpdate(RoleBase):
+    description: Optional[str] = None
+
+
+class RoleDB(RoleBase):
+    id: int
+    name: str
+    description: str = None
+    enabled: bool
+
+    class Config:
+        orm_mode = True

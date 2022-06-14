@@ -1,16 +1,28 @@
-from marshmallow_sqlalchemy import auto_field
-from app.ma import ma
-from app.models.genre import GenreModel
+from typing import Union, List
+from datetime import date
+from pydantic import BaseModel, validator
+from .validators import validate_value_alphabetical
 
 
-class GenreSchema(ma.SQLAlchemyAutoSchema):
-    id = auto_field()
+class GenreBase(BaseModel):
+    name: str
 
-    class Meta:
-        model = GenreModel
-        exclude = ('id',)
-        load_instance = True
-        load_only = ("movie",)
-        include_fk = True
-        include_relationships = True
-        ordered = True
+    # validators
+    _normalize_name = validator('name',
+                                allow_reuse=True)(validate_value_alphabetical)
+
+
+class GenreCreate(GenreBase):
+    name: str
+
+
+class GenreUpdate(GenreBase):
+    name: str
+
+
+class GenreDB(GenreBase):
+    id: int
+    name: str
+
+    class Config:
+        orm_mode = True

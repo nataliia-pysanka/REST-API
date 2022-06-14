@@ -1,8 +1,7 @@
 from app.db import db
-from typing import List
 
 
-class GenreModel(db.Model):
+class Genre(db.Model):
     __tablename__: str = 'genre'
 
     id = db.Column(db.INTEGER, primary_key=True)

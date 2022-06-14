@@ -1,16 +1,16 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
-from app.schemas.director import DirectorSchema
+from app.schemas.director import DirectorCreate, DirectorUpdate, DirectorDB
 from app.crud.base import CRUDBase
-from app.models.director import DirectorModel
+from app.models.director import Director
 from typing import Any, List
 
 
-class CRUDDirector(CRUDBase[DirectorModel, DirectorSchema]):
+class CRUDDirector(CRUDBase[Director, DirectorCreate, DirectorUpdate]):
     def __init__(self):
-        self.model = DirectorModel
+        self.model = Director
 
-    def create(self, session: Session, obj_data: Any) -> DirectorModel:
+    def create(self, session: Session, obj_data: Any) -> DirectorDB:
         db_obj = self.model(name=obj_data.name,
                             surname=obj_data.surname,
                             date_birth=obj_data.date_birth,

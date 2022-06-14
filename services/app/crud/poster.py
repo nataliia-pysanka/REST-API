@@ -1,15 +1,15 @@
 from sqlalchemy.orm import Session
-from app.schemas.poster import PosterSchema
+from app.schemas.poster import PosterCreate, PosterUpdate
 from app.crud.base import CRUDBase
-from app.models.poster import PosterModel
-from typing import Any, List
+from app.models.poster import Poster
+from typing import Any
 
 
-class CRUDPoster(CRUDBase[PosterModel, PosterSchema]):
+class CRUDPoster(CRUDBase[Poster, PosterCreate, PosterUpdate]):
     def __init__(self):
-        self.model = PosterModel
+        self.model = Poster
 
-    def create(self, session: Session, obj_data: Any) -> PosterModel:
+    def create(self, session: Session, obj_data: Any) -> Poster:
         db_obj = self.model(url=obj_data.url)
         session.add(db_obj)
         session.commit()

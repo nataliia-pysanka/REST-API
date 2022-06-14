@@ -1,11 +1,20 @@
 from flask import make_response, jsonify
 
+NOT_FOUND = "Object Not Found."
+WAS_DELETED = "Object Was Deleted."
+ALREADY_EXISTS = "Object Already Exists."
+CANT_UPDATE = "Can't Update Object."
+WAS_CREATED = "Object Was Created."
+CANT_CREATE = "Can't Create Object."
+UPDATED = "Object Was Updated."
+NO_RIGHTS = "No Rights For Operation."
+
 
 def response_with(response, value=None, message=None, error=None, headers={}):
     result = {'message': response['message']}
 
     if value:
-        result.update(value)
+        result.update({'value': value})
 
     if message:
         result.update({'message': message})
