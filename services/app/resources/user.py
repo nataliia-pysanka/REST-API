@@ -7,6 +7,8 @@ from app.util.responses import response_with
 from app.crud.user import CRUDUser
 from app.domain.user import DomainUser
 
+from app.db import db
+
 user_ns = Namespace('user', description='Item related operations')
 users_ns = Namespace('users', description='Items related operations')
 
@@ -25,7 +27,7 @@ user = users_ns.model('User', {
 
 class User(Resource):
     def get(self, id):
-        obj = user_domain.read(id)
+        obj = user_domain.read(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
         return response_with(resp.NOT_FOUND_404,
@@ -33,7 +35,7 @@ class User(Resource):
 
     @login_required
     def delete(self, id):
-        obj = user_domain.delete(id)
+        obj = user_domain.delete(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200,
                                  message=resp.WAS_DELETED,
@@ -45,7 +47,7 @@ class User(Resource):
     @login_required
     def put(self, id):
         data = request.get_json()
-        obj, err = user_domain.update(data, id)
+        obj, err = user_domain.update(db.session, data, id)
         if err:
             return response_with(resp.INVALID_INPUT_422,
                                  message=resp.CANT_UPDATE,
@@ -61,7 +63,7 @@ class User(Resource):
 class UserList(Resource):
     @users_ns.doc('Get all the users')
     def get(self):
-        obj = user_domain.read_all()
+        obj = user_domain.read_all(db.session)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
         return response_with(resp.NOT_FOUND_404,
