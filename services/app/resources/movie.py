@@ -11,6 +11,8 @@ from app.domain.user import DomainUser
 from app.util.responses import response_with
 import app.util.responses as resp
 
+from app.db import db
+
 movie_ns = Namespace('movie', description='Item related operations')
 movies_ns = Namespace('movies', description='Items related operations')
 
@@ -31,7 +33,7 @@ user_domain = DomainUser(CRUDUser())
 
 class Movie(Resource):
     def get(self, id):
-        obj = movie_domain.read(id)
+        obj = movie_domain.read(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
         return response_with(resp.NOT_FOUND_404,
@@ -39,14 +41,14 @@ class Movie(Resource):
 
     @login_required
     def delete(self, id):
-        user = movie_domain.read(id)
+        user = movie_domain.read(db.session, id)
         if not user:
             return response_with(resp.NOT_FOUND_404,
                                  message=resp.NOT_FOUND)
 
         user_id = user['user']['id']
         if current_user.id == user_id or current_user.is_admin():
-            obj = movie_domain.delete(id)
+            obj = movie_domain.delete(db.session, id)
             print('obj', obj)
             if obj:
                 return response_with(resp.SUCCESS_200,
@@ -58,10 +60,10 @@ class Movie(Resource):
     @movie_ns.expect(movie)
     @login_required
     def put(self, id):
-        user_id = movie_domain.read(id).id_user
+        user_id = movie_domain.read(db.session, id).id_user
         if current_user.id == user_id or current_user.is_admin():
             data = request.get_json()
-            obj, err = movie_domain.update(data, id)
+            obj, err = movie_domain.update(db.session, data, id)
             if err:
                 return response_with(resp.INVALID_INPUT_422,
                                      message=resp.CANT_UPDATE,
@@ -90,7 +92,7 @@ class MovieList(Resource):
     def get(self):
         args = request.args
 
-        json = movie_domain.get_movie_by_filter(args)
+        json = movie_domain.get_movie_by_filter(db.session, args)
 
         if not json:
             return response_with(resp.NOT_FOUND_404,
@@ -130,7 +132,7 @@ class MovieList(Resource):
         # data['date_registry'] = user['date_registry']
         # data['id_role'] = user['id_role']
 
-        obj, err = movie_domain.create(data)
+        obj, err = movie_domain.create(db.session, data)
         if err:
             return response_with(resp.INVALID_INPUT_422,
                                  message=resp.CANT_CREATE,

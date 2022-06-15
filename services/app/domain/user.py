@@ -5,30 +5,29 @@ from app.domain.base import DomainBase
 from app.schemas.user import UserCreate, UserUpdate, UserDB
 from app.models.user import User
 from app.util.log import logger
-from app.db import db
 
 
 class DomainUser(DomainBase):
-    def get_model_by_nickname(self, nickname: str):
-        model = self.crud.get_user_by_nickname(db.session, nickname)
+    def get_model_by_nickname(self, session: Session, nickname: str):
+        model = self.crud.get_user_by_nickname(session, nickname)
         if model:
             return model
         return None
 
-    def get_model_by_id(self, id: Any):
-        model = super(DomainUser, self).read(id)
+    def get_model_by_id(self, session: Session, id: Any):
+        model = super(DomainUser, self).read(session, id)
         if model:
             return model
         return None
 
-    def get_dict_by_id(self, id: Any):
-        model = super(DomainUser, self).read(id)
+    def get_dict_by_id(self, session: Session, id: Any):
+        model = super(DomainUser, self).read(session, id)
         if model:
             return UserDB.from_orm(model).dict()
         return None
 
-    def get_dict_by_nickname(self, nickname: str):
-        model = self.crud.get_user_by_nickname(db.session, nickname)
+    def get_dict_by_nickname(self, session: Session, nickname: str):
+        model = self.crud.get_user_by_nickname(session, nickname)
         if model:
             return UserDB.from_orm(model).dict()
         return None
@@ -38,33 +37,33 @@ class DomainUser(DomainBase):
             return UserDB.from_orm(model).dict()
         return None
 
-    def read(self, id: Any):
-        query = super(DomainUser, self).read(id)
+    def read(self, session: Session, id: Any):
+        query = super(DomainUser, self).read(session, id)
         if query:
             return UserDB.from_orm(query).dict()
         return None
 
-    def read_all(self):
-        query = super(DomainUser, self).read_all()
+    def read_all(self, session: Session):
+        query = super(DomainUser, self).read_all(session)
         lst = []
         for obj in query:
             lst.append(UserDB.from_orm(obj).dict())
         return lst
 
-    def create(self, obj_data: Any):
+    def create(self, session: Session, obj_data: Any):
         try:
             data = UserCreate.parse_obj(obj_data)
         except ValidationError as err:
             logger.error(err.raw_errors)
             return None, err
 
-        query = super(DomainUser, self).create(data)
+        query = super(DomainUser, self).create(session, data)
         if query:
             return UserDB.from_orm(query).dict(), None
         return None, None
 
-    def update(self, obj_data: Any, id: Any):
-        query = super(DomainUser, self).read(id)
+    def update(self, session: Session, obj_data: Any, id: Any):
+        query = super(DomainUser, self).read(session, id)
         if not query:
             return None, None
 
@@ -81,13 +80,13 @@ class DomainUser(DomainBase):
             logger.error(err.raw_errors)
             return None, err
 
-        query = super(DomainUser, self).update(query, data)
+        query = super(DomainUser, self).update(session, query, data)
         if query:
             return UserDB.from_orm(query).dict(), None
         return None, None
 
-    def delete(self, id: Any):
-        query = super(DomainUser, self).delete(id)
+    def delete(self, session: Session, id: Any):
+        query = super(DomainUser, self).delete(session, id)
         if not query:
             return None
         return UserDB.from_orm(query).dict()

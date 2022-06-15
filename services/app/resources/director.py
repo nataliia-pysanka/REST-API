@@ -6,6 +6,8 @@ from app.util.responses import response_with
 from app.crud.director import CRUDDirector
 from app.domain.director import DomainDirector
 
+from app.db import db
+
 director_ns = Namespace('director', description='Item related operations')
 directors_ns = Namespace('directors', description='Items related operations')
 
@@ -21,14 +23,14 @@ director = directors_ns.model('Director', {
 
 class Director(Resource):
     def get(self, id: int):
-        obj = director_domain.read(id)
+        obj = director_domain.read(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
         return response_with(resp.NOT_FOUND_404,
                              message=resp.NOT_FOUND)
 
     def delete(self, id: int):
-        obj = director_domain.delete(id)
+        obj = director_domain.delete(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200,
                                  message=resp.WAS_DELETED,
@@ -39,7 +41,7 @@ class Director(Resource):
     @director_ns.expect(director)
     def put(self, id: int):
         data = request.get_json()
-        obj, err = director_domain.update(data, id)
+        obj, err = director_domain.update(db.session, data, id)
         if err:
             return response_with(resp.INVALID_INPUT_422,
                                  message=resp.CANT_UPDATE,
@@ -55,7 +57,7 @@ class Director(Resource):
 class DirectorList(Resource):
     @directors_ns.doc('Get all the directors')
     def get(self):
-        obj = director_domain.read_all()
+        obj = director_domain.read_all(db.session)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
         return response_with(resp.NOT_FOUND_404,
@@ -65,7 +67,7 @@ class DirectorList(Resource):
     @directors_ns.doc('Create a director')
     def post(self):
         data = request.get_json()
-        obj, err = director_domain.create(data)
+        obj, err = director_domain.create(db.session, data)
         if err:
             return response_with(resp.INVALID_INPUT_422,
                                  message=resp.CANT_CREATE,

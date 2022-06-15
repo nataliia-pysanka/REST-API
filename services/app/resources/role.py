@@ -6,6 +6,8 @@ from app.util.responses import response_with
 from app.domain.role import DomainRole
 from app.crud.role import CRUDRole
 
+from app.db import db
+
 role_ns = Namespace('role', description='Item related operations')
 roles_ns = Namespace('roles', description='Items related operations')
 
@@ -20,14 +22,14 @@ role = roles_ns.model('Role', {
 
 class Role(Resource):
     def get(self, id: int):
-        obj = role_domain.read(id)
+        obj = role_domain.read(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
         return response_with(resp.NOT_FOUND_404,
                              message=resp.NOT_FOUND)
 
     def delete(self, id: int):
-        obj = role_domain.delete(id)
+        obj = role_domain.delete(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200,
                                  message=resp.WAS_DELETED,
@@ -39,7 +41,7 @@ class Role(Resource):
     def put(self, id: int):
         def put(self, id: int):
             data = request.get_json()
-            obj, err = role_domain.update(data, id)
+            obj, err = role_domain.update(db.session, data, id)
             if err:
                 return response_with(resp.INVALID_INPUT_422,
                                      message=resp.CANT_UPDATE,
@@ -56,7 +58,7 @@ class Role(Resource):
 class RoleList(Resource):
     @roles_ns.doc('Get all the roles')
     def get(self):
-        obj = role_domain.read_all()
+        obj = role_domain.read_all(db.session)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
         return response_with(resp.NOT_FOUND_404,
@@ -66,7 +68,7 @@ class RoleList(Resource):
     @roles_ns.doc('Create a role')
     def post(self):
         data = request.get_json()
-        obj, err = role_domain.create(data)
+        obj, err = role_domain.create(db.session, data)
         if err:
             return response_with(resp.INVALID_INPUT_422,
                                  message=resp.CANT_CREATE,
