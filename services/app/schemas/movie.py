@@ -31,9 +31,9 @@ class MovieCreate(MovieBase):
     description: Union[str, None] = None
     date_release: Union[date, None] = None
     rating: Union[float, None] = None
-    id_genre: Union[List[Union[str, Any]], None] = None
+    id_genre: Union[Any, None] = None
     id_director: Union[str, Any, None] = None
-    id_poster: Union[List[Union[str, Any]], None] = None
+    id_poster: Union[Any, None] = None
     id_user: Union[str, Any, None] = None
 
     # @validator('date_release')
@@ -48,9 +48,9 @@ class MovieUpdate(MovieBase):
     description: Union[str, None] = None
     date_release: Union[date, None] = None
     rating: Union[float, None] = None
-    id_genre: Optional[List[Union[str, Any]]] = None
+    id_genre: Optional[Any] = None
     id_director: Union[str, Any, None] = None
-    id_poster: Optional[List[Union[str, Any]]] = None
+    id_poster: Optional[Any] = None
 
 
 class MovieDB(MovieBase):

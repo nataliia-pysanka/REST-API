@@ -22,8 +22,8 @@ from .resources.poster import Poster, PosterList, poster_ns, posters_ns
 
 from .auth import auth_routes, login_manager
 
-# from .seed.seed import seed_roles, seed_genres, seed_directors, \
-#                        seed_posters, seed_movies, seed_users_by_roles
+from .seed.seed import seed_roles, seed_genres, seed_directors, \
+                       seed_posters, seed_movies, seed_users_by_roles
 
 
 app = Flask(__name__)
@@ -110,22 +110,22 @@ user_ns.add_resource(User, '/<int:id>')
 users_ns.add_resource(UserList, "")
 
 
-# @app.cli.command("seed")
-# def seed():
-#     click.echo('Seed roles')
-#     seed_roles(db.session)
-#     click.echo('Seed genres')
-#     seed_genres(db.session)
-#     click.echo('Seed admins')
-#     seed_users_by_roles(db.session, 10, 1)
-#     click.echo('Seed users')
-#     seed_users_by_roles(db.session, 3000, 2)
-#     click.echo('Seed directors')
-#     seed_directors(db.session, 2000)
-#     click.echo('Seed posters')
-#     seed_posters(db.session, 20000)
-#     click.echo('Seed movies')
-#     seed_movies(db.session, 20000)
+@app.cli.command("seed")
+def seed():
+    # click.echo('Seed roles')
+    # seed_roles(db.session)
+    # click.echo('Seed genres')
+    # seed_genres(db.session)
+    # click.echo('Seed admins')
+    # seed_users_by_roles(db.session, 10, 1)
+    # click.echo('Seed users')
+    # seed_users_by_roles(db.session, 300, 2)
+    # click.echo('Seed directors')
+    # seed_directors(db.session, 200)
+    # click.echo('Seed posters')
+    # seed_posters(db.session, 200)
+    click.echo('Seed movies')
+    seed_movies(db.session, 200)
 
 
 @app.cli.command('drop')

@@ -13,13 +13,13 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
 
     def create(self, session: Session, obj_data: Any) -> User:
         """Creates object and save to session"""
-        db_obj = self.model(nickname=obj_data['nickname'],
-                            password=obj_data['password'],
-                            name=obj_data['name'],
-                            surname=obj_data['surname'],
-                            date_birth=obj_data['date_birth'],
-                            date_registry=obj_data['date_registry'],
-                            id_role=obj_data['id_role'])
+        db_obj = self.model(nickname=obj_data.nickname,
+                            password=obj_data.password,
+                            name=obj_data.name,
+                            surname=obj_data.surname,
+                            date_birth=obj_data.date_birth,
+                            date_registry=obj_data.date_registry,
+                            id_role=obj_data.id_role)
         session.add(db_obj)
         session.commit()
         session.refresh(db_obj)

@@ -1,6 +1,6 @@
 """Module for User pydantic models"""
 from re import search as re_search
-from typing import Union, Optional
+from typing import Union, Optional, Any
 from datetime import date
 from pydantic import BaseModel, SecretStr, validator
 from app.schemas.role import RoleDB
@@ -20,10 +20,12 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     """Create pydantic model for User"""
-    password: SecretStr
+    password: str
     name: Union[str, None] = None
     surname: Union[str, None] = None
     date_birth: Union[date, None] = None
+    date_registry: date
+    id_role: Union[str, Any, None] = None
 
     # validators
     _normalize_name = validator('name',
@@ -43,6 +45,7 @@ class UserUpdate(UserBase):
     name: Union[str, None]
     surname: Union[str, None]
     date_birth: Union[date, None] = None
+    id_role: Union[str, Any, None] = None
 
     @validator('name', 'surname')
     def name_alphanumeric(cls, name_):

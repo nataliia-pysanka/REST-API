@@ -39,6 +39,7 @@ class DomainDirector(DomainBase):
                   Tuple[Dict, None],
                   Tuple[None, None]]:
         """Parses data, creates object and returns like dict"""
+        print(obj_data)
         try:
             data = DirectorCreate.parse_obj(obj_data)
         except ValidationError as err:
