@@ -83,7 +83,9 @@ api.add_namespace(roles_ns)
 
 @app.before_first_request
 def create_tables():
+    db.drop_all()
     db.create_all()
+    db.session.commit()
 
 
 @api.errorhandler(ValidationError)
@@ -112,20 +114,23 @@ users_ns.add_resource(UserList, "")
 
 @app.cli.command("seed")
 def seed():
-    # click.echo('Seed roles')
-    # seed_roles(db.session)
-    # click.echo('Seed genres')
-    # seed_genres(db.session)
-    # click.echo('Seed admins')
-    # seed_users_by_roles(db.session, 10, 1)
-    # click.echo('Seed users')
-    # seed_users_by_roles(db.session, 300, 2)
-    # click.echo('Seed directors')
-    # seed_directors(db.session, 200)
-    # click.echo('Seed posters')
-    # seed_posters(db.session, 200)
+    click.echo('Seed roles')
+    seed_roles(db.session)
+    click.echo('Seed genres')
+    seed_genres(db.session)
+    click.echo('Seed admins')
+    seed_users_by_roles(db.session, int(Config.ADMIN_NUM), 1)
+    click.echo('Seed users')
+    seed_users_by_roles(db.session, int(Config.USER_NUM), 2)
+    click.echo('Seed directors')
+    seed_directors(db.session, int(Config.DIRECTOR_NUM))
+    click.echo('Seed posters')
+    seed_posters(db.session, int(Config.POSTER_NUM))
     click.echo('Seed movies')
-    seed_movies(db.session, 200)
+    seed_movies(db.session, num=int(Config.MOVIE_NUM),
+                director_num=int(Config.DIRECTOR_NUM),
+                poster_num=int(Config.POSTER_NUM),
+                user_num=int(Config.ADMIN_NUM)+int(Config.USER_NUM))
 
 
 @app.cli.command('drop')

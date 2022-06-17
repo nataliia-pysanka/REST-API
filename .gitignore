@@ -46,6 +46,7 @@ pytest-env
 Pipfile.lock
 
 # enviroment
-.env*
+#.env*
 
 comands
+log.txt

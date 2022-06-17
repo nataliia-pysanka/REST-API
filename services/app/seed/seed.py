@@ -114,11 +114,13 @@ def seed_posters(session: Session, num: int):
         counter += 1
 
 
-def seed_movies(session: Session, num: int):
+def seed_movies(session: Session, num: int, director_num: int,
+                poster_num: int, user_num: int):
     """Seed movies"""
     counter = 0
     while counter < num:
-        id_director = random.choice([None, fake.random_int(min=1, max=num)])
+        id_director = random.choice([None, fake.random_int(min=1,
+                                                           max=director_num)])
 
         birth = CRUDDirector().get_birth_by_id(session, id_director)
         if birth:
@@ -132,8 +134,8 @@ def seed_movies(session: Session, num: int):
             'rating': fake.random_digit() + (fake.random_digit() * 0.1),
             'id_director': id_director,
             'id_poster': random.choice([None, fake.random_int(min=1,
-                                                              max=num)]),
-            'id_user': fake.random_int(min=1, max=310),
+                                                              max=poster_num)]),
+            'id_user': fake.random_int(min=1, max=user_num),
             'id_genre': fake.random_int(min=1, max=len(GENRES))
         }
 
