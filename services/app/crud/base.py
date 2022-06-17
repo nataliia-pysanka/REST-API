@@ -58,6 +58,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType],
 
     def create(self, session: Session, obj: CreateSchemaType) -> ModelType:
         """Creates object and save to session"""
+        print(obj)
         db_obj = self.model(obj)
         session.add(db_obj)
         session.commit()

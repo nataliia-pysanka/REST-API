@@ -15,12 +15,14 @@ class RoleBase(BaseModel):
 
 class RoleCreate(RoleBase):
     """Create pydantic model for Role"""
+    description: Optional[str] = None
     enabled: bool = True
 
 
 class RoleUpdate(RoleBase):
     """Update pydantic model for Role"""
     description: Optional[str] = None
+    enabled: bool = True
 
 
 class RoleDB(RoleBase):

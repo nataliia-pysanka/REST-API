@@ -34,6 +34,8 @@ class CRUDDirector(CRUDBase[Director, DirectorCreate, DirectorUpdate]):
             obj_all = session.query(self.model).filter(or_(
                             self.model.name.ilike(name_list[0]),
                             self.model.surname.ilike(name_list[0]))).all()
+        else:
+            return None
         obj_id = [obj.id for obj in obj_all]
         return obj_id
 

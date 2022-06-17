@@ -4,26 +4,33 @@ import datetime
 from faker import Faker
 from sqlalchemy.orm import Session
 
-from app.models.director import DirectorModel
-from app.models.genre import GenreModel
-from app.models.role import RoleModel
-from app.models.poster import PosterModel
-from app.models.user import UserModel
-from app.models.movie import MovieModel
+from app.domain.director import DomainDirector
+from app.domain.genre import DomainGenre
+from app.domain.role import DomainRole
+from app.domain.poster import DomainPoster
+from app.domain.user import DomainUser
+from app.domain.movie import DomainMovie
 
-from app.crud.base import CRUDBase
 from app.crud.director import CRUDDirector
+from app.crud.genre import CRUDGenre
+from app.crud.role import CRUDRole
+from app.crud.poster import CRUDPoster
+from app.crud.user import CRUDUser
+from app.crud.movie import CRUDMovie
+from app.crud.base import CRUDBase
 
 from typing import TypeVar, Any
 
+from app.schemas.director import DirectorCreate
+
 fake = Faker()
 
-BaseModel = TypeVar("BaseModel")
+BaseCreate = TypeVar("BaseCreate")
 
 
-def is_exist(session: Session, model: BaseModel, attr: Any) -> bool:
+def is_exist(session: Session, attr: Any) -> bool:
     """Check if field already exist in DB"""
-    obj = CRUDBase(model).get_id_by_name(session, attr)
+    obj = CRUDDirector().get_id_by_name(session, attr)
     if obj:
         return True
     return False
@@ -43,7 +50,7 @@ def seed_users_by_roles(session: Session, num: int, role: int):
                      'date_registry': (fake.date_between(start_date='-2y')),
                      'id_role': str(role)
                      }
-        CRUDBase(UserModel).create(session, user_json)
+        DomainUser(CRUDUser()).create(session, user_json)
         counter += 1
 
 
@@ -53,8 +60,8 @@ def seed_directors(session: Session, num: int):
     while counter < num:
         name = fake.first_name()
         surname = fake.last_name()
-        if is_exist(session, DirectorModel, name) and \
-                is_exist(session, DirectorModel, surname):
+        if is_exist(session, name) and \
+                is_exist(session, surname):
             continue
         director_json = {'name': name,
                          'surname': surname,
@@ -63,7 +70,7 @@ def seed_directors(session: Session, num: int):
                          'wiki_url': f'https://en.wikipedia.org/wiki/'
                                      f'{name}_{surname}'
                          }
-        CRUDBase(DirectorModel).create(session, director_json)
+        DomainDirector(CRUDDirector()).create(session, director_json)
         counter += 1
 
 
@@ -77,7 +84,7 @@ def seed_genres(session: Session):
     genre_json = {"name": None}
     for genre in GENRES:
         genre_json['name'] = genre
-        CRUDBase(GenreModel).create(session, genre_json)
+        DomainGenre(CRUDGenre()).create(session, genre_json)
 
 
 def seed_roles(session: Session):
@@ -95,7 +102,7 @@ def seed_roles(session: Session):
         }
     ]
     for data in data_json:
-        CRUDBase(RoleModel).create(session, data)
+        DomainRole(CRUDRole()).create(session, data)
 
 
 def seed_posters(session: Session, num: int):
@@ -103,7 +110,7 @@ def seed_posters(session: Session, num: int):
     counter = 1
     while counter < num + 1:
         data_json = {'url': f'https://poster/{counter}'}
-        CRUDBase(PosterModel).create(session, data_json)
+        DomainPoster(CRUDPoster()).create(session, data_json)
         counter += 1
 
 
@@ -111,9 +118,9 @@ def seed_movies(session: Session, num: int):
     """Seed movies"""
     counter = 0
     while counter < num:
-        id_director = random.choice([None, fake.random_int(min=1, max=2000)])
-        birth = CRUDDirector(DirectorModel).get_birth_by_id(session,
-                                                            id_director)
+        id_director = random.choice([None, fake.random_int(min=1, max=num)])
+
+        birth = CRUDDirector().get_birth_by_id(session, id_director)
         if birth:
             year_delta = datetime.datetime.now().year - birth.year - 21
         else:
@@ -125,10 +132,10 @@ def seed_movies(session: Session, num: int):
             'rating': fake.random_digit() + (fake.random_digit() * 0.1),
             'id_director': id_director,
             'id_poster': random.choice([None, fake.random_int(min=1,
-                                                              max=20000)]),
-            'id_user': fake.random_int(min=1, max=2000),
+                                                              max=num)]),
+            'id_user': fake.random_int(min=1, max=310),
             'id_genre': fake.random_int(min=1, max=len(GENRES))
         }
 
-        CRUDBase(MovieModel).create(session, movie_json)
+        DomainMovie(CRUDMovie()).create(session, movie_json)
         counter += 1
