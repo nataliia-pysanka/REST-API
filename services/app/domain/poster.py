@@ -1,32 +1,43 @@
+"""Module for domain class Poster"""
+from typing import Any, List, Dict, Optional, Union, Tuple
 from sqlalchemy.orm import Session
 from pydantic import ValidationError
 
 from app.domain.base import DomainBase
 from app.schemas.poster import PosterCreate, PosterUpdate, PosterDB
-from typing import Any, List
 from app.util.log import logger
+
+from app.models.poster import Poster
 
 
 class DomainPoster(DomainBase):
-    def get_id_by_name(self, session: Session, name_list: List[str]) -> List[Any]:
+    def get_id_by_name(self, session: Session, name_list: List[str]) \
+            -> List[Poster]:
+        """Reads object by its name and returns it"""
         if name_list:
             return self.crud.get_id_by_name(session, name_list)
         return []
 
-    def read(self, session: Session, id: Any):
+    def read(self, session: Session, id: Any) -> Optional[Dict]:
+        """Reads object and returns like dict"""
         query = super(DomainPoster, self).read(session, id)
         if query:
             return PosterDB.from_orm(query).dict()
         return None
 
-    def read_all(self, session: Session):
+    def read_all(self, session: Session) -> List[Optional[Dict]]:
+        """Reads all objects and returns like list of dict"""
         query = super(DomainPoster, self).read_all(session)
         lst = []
         for obj in query:
             lst.append(PosterDB.from_orm(obj).dict())
         return lst
 
-    def create(self, session: Session, obj_data: Any):
+    def create(self, session: Session, obj_data: Dict) -> \
+            Union[Tuple[None, ValidationError],
+                  Tuple[Dict, None],
+                  Tuple[None, None]]:
+        """Parses data, creates object and returns like dict"""
         try:
             data = PosterCreate.parse_obj(obj_data)
         except ValidationError as err:
@@ -38,7 +49,11 @@ class DomainPoster(DomainBase):
             return PosterDB.from_orm(query).dict(), None
         return None, None
 
-    def update(self, session: Session, obj_data: Any, id: Any):
+    def update(self, session: Session, obj_data: Any, id: Any) ->\
+            Union[Tuple[None, ValidationError],
+                  Tuple[Dict, None],
+                  Tuple[None, None]]:
+        """Parses data, updates object and returns like dict"""
         query = super(DomainPoster, self).read(session, id)
         if not query:
             return None, None
@@ -61,7 +76,8 @@ class DomainPoster(DomainBase):
             return PosterDB.from_orm(query).dict(), None
         return None, None
 
-    def delete(self, session: Session, id: Any):
+    def delete(self, session: Session, id: Any) -> Optional[Dict]:
+        """Deletes object and returns like dict"""
         query = super(DomainPoster, self).delete(session, id)
         if not query:
             return None

@@ -1,3 +1,4 @@
+"""Module for User pydantic models"""
 from re import search as re_search
 from typing import Union, Optional
 from datetime import date
@@ -7,6 +8,7 @@ from .validators import validate_value_alphabetical
 
 
 class UserBase(BaseModel):
+    """Base pydantic model for User"""
     nickname: str
 
     @validator('nickname')
@@ -17,6 +19,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
+    """Create pydantic model for User"""
     password: SecretStr
     name: Union[str, None] = None
     surname: Union[str, None] = None
@@ -36,6 +39,7 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(UserBase):
+    """Update pydantic model for User"""
     name: Union[str, None]
     surname: Union[str, None]
     date_birth: Union[date, None] = None
@@ -49,6 +53,7 @@ class UserUpdate(UserBase):
 
 
 class UserDB(UserBase):
+    """ORM pydantic model for User"""
     id: int
     nickname: str
     name: str = None

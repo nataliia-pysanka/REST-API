@@ -1,3 +1,4 @@
+"""Module for pydantic validators"""
 from re import search as re_search
 
 

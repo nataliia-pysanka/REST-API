@@ -1,3 +1,4 @@
+"""Module for Role resources"""
 from flask import request
 from flask_restx import Resource, fields, Namespace
 
@@ -21,7 +22,9 @@ role = roles_ns.model('Role', {
 
 
 class Role(Resource):
+    """Class-resource for single instance Role"""
     def get(self, id: int):
+        """GET method"""
         obj = role_domain.read(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
@@ -29,6 +32,7 @@ class Role(Resource):
                              message=resp.NOT_FOUND)
 
     def delete(self, id: int):
+        """DELETE method"""
         obj = role_domain.delete(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200,
@@ -39,25 +43,27 @@ class Role(Resource):
 
     @role_ns.expect(role)
     def put(self, id: int):
-        def put(self, id: int):
-            data = request.get_json()
-            obj, err = role_domain.update(db.session, data, id)
-            if err:
-                return response_with(resp.INVALID_INPUT_422,
-                                     message=resp.CANT_UPDATE,
-                                     value=err.errors())
-            if obj:
-                return response_with(resp.SUCCESS_201,
-                                     message=resp.UPDATED,
-                                     value=obj)
+        """PUT method"""
+        data = request.get_json()
+        obj, err = role_domain.update(db.session, data, id)
+        if err:
+            return response_with(resp.INVALID_INPUT_422,
+                                 message=resp.CANT_UPDATE,
+                                 value=err.errors())
+        if obj:
+            return response_with(resp.SUCCESS_201,
+                                 message=resp.UPDATED,
+                                 value=obj)
 
-            return response_with(resp.NOT_FOUND_404,
-                                 message=resp.NOT_FOUND)
+        return response_with(resp.NOT_FOUND_404,
+                             message=resp.NOT_FOUND)
 
 
 class RoleList(Resource):
+    """Class-resource for couple instances of Director"""
     @roles_ns.doc('Get all the roles')
     def get(self):
+        """GET method"""
         obj = role_domain.read_all(db.session)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
@@ -67,6 +73,7 @@ class RoleList(Resource):
     @roles_ns.expect(role)
     @roles_ns.doc('Create a role')
     def post(self):
+        """POST method"""
         data = request.get_json()
         obj, err = role_domain.create(db.session, data)
         if err:

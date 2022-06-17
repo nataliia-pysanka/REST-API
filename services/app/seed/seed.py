@@ -1,3 +1,4 @@
+"""Module for seeding database"""
 import random
 import datetime
 from faker import Faker
@@ -20,7 +21,8 @@ fake = Faker()
 BaseModel = TypeVar("BaseModel")
 
 
-def is_exist(session: Session, model: BaseModel, attr: Any):
+def is_exist(session: Session, model: BaseModel, attr: Any) -> bool:
+    """Check if field already exist in DB"""
     obj = CRUDBase(model).get_id_by_name(session, attr)
     if obj:
         return True
@@ -28,6 +30,7 @@ def is_exist(session: Session, model: BaseModel, attr: Any):
 
 
 def seed_users_by_roles(session: Session, num: int, role: int):
+    """Seed users by roles"""
     counter = 1
     while counter < num + 1:
         nickname = fake.simple_profile()['username'] + str(counter)
@@ -45,6 +48,7 @@ def seed_users_by_roles(session: Session, num: int, role: int):
 
 
 def seed_directors(session: Session, num: int):
+    """Seed directors"""
     counter = 0
     while counter < num:
         name = fake.first_name()
@@ -69,6 +73,7 @@ GENRES = ['Action', 'Comedy', 'Drama', 'Fantasy', 'Horror', 'Mystery',
 
 
 def seed_genres(session: Session):
+    """Seed genres"""
     genre_json = {"name": None}
     for genre in GENRES:
         genre_json['name'] = genre
@@ -76,6 +81,7 @@ def seed_genres(session: Session):
 
 
 def seed_roles(session: Session):
+    """Seed roles"""
     data_json = [
         {
             "name": "Admin",
@@ -93,6 +99,7 @@ def seed_roles(session: Session):
 
 
 def seed_posters(session: Session, num: int):
+    """Seed posters"""
     counter = 1
     while counter < num + 1:
         data_json = {'url': f'https://poster/{counter}'}
@@ -101,6 +108,7 @@ def seed_posters(session: Session, num: int):
 
 
 def seed_movies(session: Session, num: int):
+    """Seed movies"""
     counter = 0
     while counter < num:
         id_director = random.choice([None, fake.random_int(min=1, max=2000)])

@@ -1,3 +1,4 @@
+"""Module for Director pydantic models"""
 from typing import Union, Optional
 from datetime import date
 from pydantic import BaseModel, HttpUrl, validator
@@ -5,6 +6,7 @@ from .validators import validate_value_alphabetical
 
 
 class DirectorBase(BaseModel):
+    """Base pydantic model for Director"""
     name: str
     surname: str
 
@@ -16,6 +18,7 @@ class DirectorBase(BaseModel):
 
 
 class DirectorCreate(DirectorBase):
+    """Create pydantic model for Director"""
     date_birth: Union[date, None] = None
     wiki_url: Union[HttpUrl, None] = None
 
@@ -27,6 +30,7 @@ class DirectorCreate(DirectorBase):
 
 
 class DirectorUpdate(DirectorBase):
+    """Update pydantic model for Director"""
     name: str
     surname: str
     date_birth: Union[date, str, None] = None
@@ -34,6 +38,7 @@ class DirectorUpdate(DirectorBase):
 
 
 class DirectorDB(DirectorBase):
+    """ORM pydantic model for Director"""
     id: int
     name: str
     surname: str

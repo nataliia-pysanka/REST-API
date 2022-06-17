@@ -1,3 +1,4 @@
+"""Module for Director resources"""
 from flask import request
 from flask_restx import Resource, fields, Namespace
 
@@ -22,7 +23,9 @@ director = directors_ns.model('Director', {
 
 
 class Director(Resource):
+    """Class-resource for single instance Director"""
     def get(self, id: int):
+        """GET method"""
         obj = director_domain.read(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
@@ -30,6 +33,7 @@ class Director(Resource):
                              message=resp.NOT_FOUND)
 
     def delete(self, id: int):
+        """DELETE method"""
         obj = director_domain.delete(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200,
@@ -40,6 +44,7 @@ class Director(Resource):
 
     @director_ns.expect(director)
     def put(self, id: int):
+        """PUT method"""
         data = request.get_json()
         obj, err = director_domain.update(db.session, data, id)
         if err:
@@ -55,8 +60,10 @@ class Director(Resource):
 
 
 class DirectorList(Resource):
+    """Class-resource for couple instances of Director"""
     @directors_ns.doc('Get all the directors')
     def get(self):
+        """GET method"""
         obj = director_domain.read_all(db.session)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
@@ -66,6 +73,7 @@ class DirectorList(Resource):
     @directors_ns.expect(director)
     @directors_ns.doc('Create a director')
     def post(self):
+        """POST method"""
         data = request.get_json()
         obj, err = director_domain.create(db.session, data)
         if err:

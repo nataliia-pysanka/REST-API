@@ -1,3 +1,4 @@
+"""Module for User resources"""
 from flask import request
 from flask_restx import Resource, fields, Namespace
 from flask_login import login_required
@@ -26,7 +27,9 @@ user = users_ns.model('User', {
 
 
 class User(Resource):
+    """Class-resource for single instance User"""
     def get(self, id):
+        """GET method"""
         obj = user_domain.read(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
@@ -35,6 +38,7 @@ class User(Resource):
 
     @login_required
     def delete(self, id):
+        """DELETE method"""
         obj = user_domain.delete(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200,
@@ -46,6 +50,7 @@ class User(Resource):
     @user_ns.expect(user)
     @login_required
     def put(self, id):
+        """PUT method"""
         data = request.get_json()
         obj, err = user_domain.update(db.session, data, id)
         if err:
@@ -61,8 +66,10 @@ class User(Resource):
 
 
 class UserList(Resource):
+    """Class-resource for couple instances of User"""
     @users_ns.doc('Get all the users')
     def get(self):
+        """GET method"""
         obj = user_domain.read_all(db.session)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)

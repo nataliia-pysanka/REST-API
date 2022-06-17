@@ -1,7 +1,9 @@
+"""Module for describing table Role"""
 from app.db import db
 
 
 class Role(db.Model):
+    """Table role"""
     __tablename__: str = 'role'
 
     id = db.Column(db.INTEGER, primary_key=True)

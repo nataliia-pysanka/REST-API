@@ -1,9 +1,11 @@
+"""Module for Role pydantic models"""
 from typing import Optional
 from pydantic import BaseModel, validator
 from .validators import validate_value_alphabetical
 
 
 class RoleBase(BaseModel):
+    """Base pydantic model for Role"""
     name: str
 
     # validators
@@ -12,14 +14,17 @@ class RoleBase(BaseModel):
 
 
 class RoleCreate(RoleBase):
+    """Create pydantic model for Role"""
     enabled: bool = True
 
 
 class RoleUpdate(RoleBase):
+    """Update pydantic model for Role"""
     description: Optional[str] = None
 
 
 class RoleDB(RoleBase):
+    """ORM pydantic model for Role"""
     id: int
     name: str
     description: str = None

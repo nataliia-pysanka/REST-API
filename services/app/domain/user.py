@@ -1,6 +1,8 @@
+"""Module for domain class Director"""
+from typing import Any, List, Dict, Optional, Union, Tuple
 from sqlalchemy.orm import Session
 from pydantic import ValidationError
-from typing import Any, List
+
 from app.domain.base import DomainBase
 from app.schemas.user import UserCreate, UserUpdate, UserDB
 from app.models.user import User
@@ -8,49 +10,67 @@ from app.util.log import logger
 
 
 class DomainUser(DomainBase):
-    def get_model_by_nickname(self, session: Session, nickname: str):
+    """Class for connecting data layer with routes/resources for instance
+        user"""
+    def get_model_by_nickname(self, session: Session, nickname: str) \
+            -> Optional[User]:
+        """Returns model by nickname"""
         model = self.crud.get_user_by_nickname(session, nickname)
         if model:
             return model
         return None
 
-    def get_model_by_id(self, session: Session, id: Any):
+    def get_model_by_id(self, session: Session, id: Any) \
+            -> Optional[User]:
+        """Returns model by id"""
         model = super(DomainUser, self).read(session, id)
         if model:
             return model
         return None
 
-    def get_dict_by_id(self, session: Session, id: Any):
+    def get_dict_by_id(self, session: Session, id: Any) \
+            -> Optional[Dict]:
+        """Returns model by id like dictionary"""
         model = super(DomainUser, self).read(session, id)
         if model:
             return UserDB.from_orm(model).dict()
         return None
 
-    def get_dict_by_nickname(self, session: Session, nickname: str):
+    def get_dict_by_nickname(self, session: Session, nickname: str) \
+            -> Optional[Dict]:
+        """Returns model by nickname like dictionary"""
         model = self.crud.get_user_by_nickname(session, nickname)
         if model:
             return UserDB.from_orm(model).dict()
         return None
 
-    def get_dict_by_model(self, model: User):
+    def get_dict_by_model(self, model: User) \
+            -> Optional[Dict]:
+        """Returns model of inputted object"""
         if isinstance(model, User):
             return UserDB.from_orm(model).dict()
         return None
 
-    def read(self, session: Session, id: Any):
+    def read(self, session: Session, id: Any) -> Optional[Dict]:
+        """Reads object and returns like dict"""
         query = super(DomainUser, self).read(session, id)
         if query:
             return UserDB.from_orm(query).dict()
         return None
 
-    def read_all(self, session: Session):
+    def read_all(self, session: Session) -> List[Optional[Dict]]:
+        """Reads all objects and returns like list of dict"""
         query = super(DomainUser, self).read_all(session)
         lst = []
         for obj in query:
             lst.append(UserDB.from_orm(obj).dict())
         return lst
 
-    def create(self, session: Session, obj_data: Any):
+    def create(self, session: Session, obj_data: Any) -> \
+            Union[Tuple[None, ValidationError],
+                  Tuple[Dict, None],
+                  Tuple[None, None]]:
+        """Parses data, creates object and returns like dict"""
         try:
             data = UserCreate.parse_obj(obj_data)
         except ValidationError as err:
@@ -62,7 +82,11 @@ class DomainUser(DomainBase):
             return UserDB.from_orm(query).dict(), None
         return None, None
 
-    def update(self, session: Session, obj_data: Any, id: Any):
+    def update(self, session: Session, obj_data: Any, id: Any) ->\
+            Union[Tuple[None, ValidationError],
+                  Tuple[Dict, None],
+                  Tuple[None, None]]:
+        """Parses data, updates object and returns like dict"""
         query = super(DomainUser, self).read(session, id)
         if not query:
             return None, None
@@ -85,7 +109,8 @@ class DomainUser(DomainBase):
             return UserDB.from_orm(query).dict(), None
         return None, None
 
-    def delete(self, session: Session, id: Any):
+    def delete(self, session: Session, id: Any) -> Optional[Dict]:
+        """Deletes object and returns like dict"""
         query = super(DomainUser, self).delete(session, id)
         if not query:
             return None

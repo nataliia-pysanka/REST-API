@@ -1,3 +1,4 @@
+"""Module for Movie resources"""
 from flask import request, jsonify
 from flask_restx import Resource, fields, Namespace
 from flask_login import login_required, current_user
@@ -32,7 +33,9 @@ user_domain = DomainUser(CRUDUser())
 
 
 class Movie(Resource):
+    """Class-resource for couple instances of Movie"""
     def get(self, id):
+        """GET method"""
         obj = movie_domain.read(db.session, id)
         if obj:
             return response_with(resp.SUCCESS_200, value=obj)
@@ -41,6 +44,7 @@ class Movie(Resource):
 
     @login_required
     def delete(self, id):
+        """DELETE method"""
         user = movie_domain.read(db.session, id)
         if not user:
             return response_with(resp.NOT_FOUND_404,
@@ -60,6 +64,7 @@ class Movie(Resource):
     @movie_ns.expect(movie)
     @login_required
     def put(self, id):
+        """PUT method"""
         user_id = movie_domain.read(db.session, id).id_user
         if current_user.id == user_id or current_user.is_admin():
             data = request.get_json()
@@ -80,16 +85,10 @@ class Movie(Resource):
 
 
 class MovieList(Resource):
-    # @movies_ns.doc('Get all the movies')
-    # def get(self):
-    #     obj = movie_domain.read_all()
-    #     if obj:
-    #         return response_with(resp.SUCCESS_200, value=obj)
-    #     return response_with(resp.NOT_FOUND_404,
-    #                          message=resp.NOT_FOUND)
-
+    """Class-resource for couple instances of Movie"""
     @movies_ns.doc('Get all the movies')
     def get(self):
+        """GET method"""
         args = request.args
 
         json = movie_domain.get_movie_by_filter(db.session, args)
@@ -125,6 +124,7 @@ class MovieList(Resource):
     @movies_ns.doc('Create a movie')
     @login_required
     def post(self):
+        """POST method"""
         data = request.get_json()
         # user = user_domain.get_dict_by_nickname('egepsihora')
         data['id_user'] = 1

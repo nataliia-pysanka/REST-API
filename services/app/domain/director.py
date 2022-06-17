@@ -1,32 +1,44 @@
+"""Module for domain class Director"""
+from typing import Any, List, Dict, Optional, Union, Tuple
 from sqlalchemy.orm import Session
 from pydantic import ValidationError
 
 from app.domain.base import DomainBase
 from app.schemas.director import DirectorCreate, DirectorUpdate, DirectorDB
-from typing import Any, List
+from app.models.director import Director
 from app.util.log import logger
 
 
 class DomainDirector(DomainBase):
-    def get_id_by_name(self, session: Session, name_list: List[str]) -> List[Any]:
+    """Class for connecting data layer with routes/resources for instance
+    director"""
+    def get_id_by_name(self, session: Session, name_list: List[str]) \
+            -> List[Director]:
+        """Reads object by its name and returns it"""
         if name_list:
             return self.crud.get_id_by_name(session, name_list)
         return []
 
-    def read(self, session: Session, id: Any):
+    def read(self, session: Session, id: Any) -> Optional[Dict]:
+        """Reads object and returns like dict"""
         query = super(DomainDirector, self).read(session, id)
         if query:
             return DirectorDB.from_orm(query).dict()
         return None
 
-    def read_all(self, session: Session):
+    def read_all(self, session: Session) -> List[Optional[Dict]]:
+        """Reads all objects and returns like list of dict"""
         query = super(DomainDirector, self).read_all(session)
         lst = []
         for obj in query:
             lst.append(DirectorDB.from_orm(obj).dict())
         return lst
 
-    def create(self, session: Session, obj_data: Any):
+    def create(self, session: Session, obj_data: Dict) -> \
+            Union[Tuple[None, ValidationError],
+                  Tuple[Dict, None],
+                  Tuple[None, None]]:
+        """Parses data, creates object and returns like dict"""
         try:
             data = DirectorCreate.parse_obj(obj_data)
         except ValidationError as err:
@@ -38,7 +50,11 @@ class DomainDirector(DomainBase):
             return DirectorDB.from_orm(query).dict(), None
         return None, None
 
-    def update(self, session: Session, obj_data: Any, id: Any):
+    def update(self, session: Session, obj_data: Any, id: Any) ->\
+            Union[Tuple[None, ValidationError],
+                  Tuple[Dict, None],
+                  Tuple[None, None]]:
+        """Parses data, updates object and returns like dict"""
         query = super(DomainDirector, self).read(session, id)
         if not query:
             return None, None
@@ -61,7 +77,8 @@ class DomainDirector(DomainBase):
             return DirectorDB.from_orm(query).dict(), None
         return None, None
 
-    def delete(self, session: Session, id: Any):
+    def delete(self, session: Session, id: Any) -> Optional[Dict]:
+        """Deletes object and returns like dict"""
         query = super(DomainDirector, self).delete(session, id)
         if not query:
             return None

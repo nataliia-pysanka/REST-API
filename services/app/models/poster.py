@@ -1,7 +1,9 @@
+"""Module for describing table Poster"""
 from app.db import db
 
 
 class Poster(db.Model):
+    """Table poster"""
     __tablename__: str = 'poster'
 
     id = db.Column(db.INTEGER, primary_key=True)
