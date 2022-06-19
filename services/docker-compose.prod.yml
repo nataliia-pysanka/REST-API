@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+  web:
+    container_name: web-${APP_NAME}
+    hostname: web-${APP_NAME}
+    restart: always
+    command: gunicorn --bind 0.0.0.0:5000 -w 4 wsgi:application
+    image: web-${APP_NAME}
+    expose:
+      - 5000
+
+    environment:
+      - ./.env.prod
+    depends_on:
+      db:
+        condition: service_healthy
+    build:
+      dockerfile: Dockerfile_prod
+      context: .
+
+
+  db:
+      image: postgres:14.2
+      env_file:
+          - ./.env.prod
+      restart: always
+      container_name: db-${APP_NAME}
+      hostname: db-${APP_NAME}
+      environment:
+          POSTGRES_USER: ${POSTGRES_USER}
+          POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+          PGDATA: /var/lib/postgresql/data
+      volumes:
+          - db_data_prod:/var/lib/postgresql/data
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U postgres"]
+        interval: 15s
+        timeout: 15s
+        retries: 25
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "1337:80"
+    depends_on:
+      - web
+
+
+volumes:
+  db_data_prod:
+
+
+
+
+

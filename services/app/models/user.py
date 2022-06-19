@@ -3,7 +3,7 @@ from app.db import db
 from datetime import datetime
 from app.models.role import Role
 
-from app.config_dev import ADMIN_ID
+ADMIN_ID = 1
 
 
 class User(db.Model):
