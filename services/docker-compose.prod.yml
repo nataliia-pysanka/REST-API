@@ -5,7 +5,7 @@ services:
     container_name: web-${APP_NAME}
     hostname: web-${APP_NAME}
     restart: always
-    command: gunicorn --bind 0.0.0.0:5000 -w 4 wsgi:application
+    command: gunicorn --bind 0.0.0.0:5000 -w 4 wsgi:app
     image: web-${APP_NAME}
     expose:
       - 5000
@@ -22,6 +22,8 @@ services:
 
   db:
       image: postgres:14.2
+      ports:
+        - "5432:5432"
       env_file:
           - ./.env.prod
       restart: always
@@ -42,7 +44,7 @@ services:
   nginx:
     build: ./nginx
     ports:
-      - "1337:80"
+      - "80:80"
     depends_on:
       - web
 
