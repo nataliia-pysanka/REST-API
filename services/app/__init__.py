@@ -23,7 +23,8 @@ from .resources.poster import Poster, PosterList, poster_ns, posters_ns
 from .auth import auth_routes, login_manager
 
 from .seed.seed import seed_roles, seed_genres, seed_directors, \
-                       seed_posters, seed_movies, seed_users_by_roles
+                       seed_posters, seed_movies, seed_users_by_roles, \
+                       seed_super_admin
 
 
 app = Flask(__name__)
@@ -122,12 +123,13 @@ users_ns.add_resource(UserList, "")
 def seed():
     click.echo('Seed roles')
     seed_roles(db.session)
-    click.echo('Seed genres')
-    seed_genres(db.session)
+    seed_super_admin(db.session)
     click.echo('Seed admins')
     seed_users_by_roles(db.session, int(Config.ADMIN_NUM), 1)
     click.echo('Seed users')
     seed_users_by_roles(db.session, int(Config.USER_NUM), 2)
+    click.echo('Seed genres')
+    seed_genres(db.session)
     click.echo('Seed directors')
     seed_directors(db.session, int(Config.DIRECTOR_NUM))
     click.echo('Seed posters')
@@ -136,7 +138,7 @@ def seed():
     seed_movies(db.session, num=int(Config.MOVIE_NUM),
                 director_num=int(Config.DIRECTOR_NUM),
                 poster_num=int(Config.POSTER_NUM),
-                user_num=int(Config.ADMIN_NUM)+int(Config.USER_NUM))
+                user_num=int(Config.ADMIN_NUM)+int(Config.USER_NUM)+1)
 
 
 @app.cli.command('drop')

@@ -36,6 +36,19 @@ def is_exist(session: Session, attr: Any) -> bool:
     return False
 
 
+def seed_super_admin(session: Session):
+    """Seed super_admin"""
+    user_json = {'nickname': 'super_admin',
+                 'password': '123456',
+                 'name': 'Sara',
+                 'surname': 'Huston',
+                 'date_birth': '1986-12-6',
+                 'date_registry': datetime.datetime.now(),
+                 'id_role': '1'
+                 }
+    DomainUser(CRUDUser()).create(session, user_json)
+
+
 def seed_users_by_roles(session: Session, num: int, role: int):
     """Seed users by roles"""
     counter = 1

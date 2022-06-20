@@ -15,6 +15,7 @@ class DomainUser(DomainBase):
     def get_model_by_nickname(self, session: Session, nickname: str) \
             -> Optional[User]:
         """Returns model by nickname"""
+
         model = self.crud.get_user_by_nickname(session, nickname)
         if model:
             return model
@@ -44,7 +45,7 @@ class DomainUser(DomainBase):
             return UserDB.from_orm(model).dict()
         return None
 
-    def get_dict_by_model(self, model: User) \
+    def get_dict_by_model(self, session: Session, model: User) \
             -> Optional[Dict]:
         """Returns model of inputted object"""
         if isinstance(model, User):
@@ -115,3 +116,4 @@ class DomainUser(DomainBase):
         if not query:
             return None
         return UserDB.from_orm(query).dict()
+
