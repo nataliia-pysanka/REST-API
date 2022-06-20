@@ -52,6 +52,12 @@ def handle_exception(e):
     return response
 
 
+@app.errorhandler(Exception)
+def handle_exc(e):
+    """Return JSON instead of HTML for HTTP errors."""
+    print(e)
+
+
 login_manager.init_app(app)
 login_manager.blueprint_login_views = {'auth': '/auth/login'}
 
