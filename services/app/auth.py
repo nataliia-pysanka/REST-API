@@ -28,13 +28,12 @@ def login():
     nickname = data.get('nickname', 'guest')
     password = data.get('password', '')
     user = user_domain.get_model_by_nickname(db.session, nickname)
-
-    if user.verify_password(password):
+    if user and user.verify_password(password):
         login_user(user)
         user_data = user_domain.get_dict_by_nickname(db.session, nickname)
         return response_with(resp.SUCCESS_200, value=user_data)
     else:
-        return response_with(resp.UNAUTHORIZED_401)
+        return response_with(resp.USER_NOT_FOUND_404)
 
 
 @auth_routes.route('/signup', methods=['POST'])
@@ -47,7 +46,7 @@ def signup():
                              message=resp.CANT_CREATE,
                              value=err.errors())
 
-    if user_domain.get_user_by_nickname(obj.nickname):
+    if user_domain.get_model_by_nickname(db.session, obj.nickname):
         return response_with(resp.ALREADY_EXIST_400)
 
     if obj:
@@ -70,5 +69,5 @@ def user_info():
     if current_user.is_authenticated:
         user_data = user_domain.get_dict_by_model(db.session, current_user)
         return response_with(resp.SUCCESS_200, value={'user': user_data})
-    else:
-        return response_with(resp.UNAUTHORIZED_401)
+
+    return response_with(resp.UNAUTHORIZED_401)

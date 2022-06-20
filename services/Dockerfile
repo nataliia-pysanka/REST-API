@@ -16,6 +16,6 @@ RUN pip install -r requirements.txt
 # copy project
 COPY . /usr/src/app/
 
-EXPOSE 80
+EXPOSE 5000
 
-CMD ["flask", "run", "--host=0.0.0.0", "--port=80"]
+CMD [ "python3", "wsgi"]

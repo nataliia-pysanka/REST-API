@@ -80,6 +80,12 @@ NOT_FOUND_404 = {
     "message": "Resource not found"
 }
 
+USER_NOT_FOUND_404 = {
+    "http_code": 404,
+    "code": "notFound",
+    "message": "User not found"
+}
+
 UNAUTHORIZED_401 = {
     "http_code": 401,
     "code": "notAuthorized",

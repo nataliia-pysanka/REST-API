@@ -48,4 +48,3 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             f'%{nickname}%')).first()
         if obj:
             return obj
-        return None
